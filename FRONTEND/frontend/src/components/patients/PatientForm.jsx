@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Plus } from 'lucide-react';
 import { toast } from 'react-toastify';
 import {
   createPatient,
@@ -22,11 +22,13 @@ export default function PatientForm({ patient, onSave, onCancel }) {
     emergencia_number: '',
     condiciones_medicas: '',
     alergias: '',
+    extras: [],
   });
 
   const [errors, setErrors] = useState({});
   const [documentTypes, setDocumentTypes] = useState([]);
   const [labelPatients, setLabelPatients] = useState([]);
+  const [newExtra, setNewExtra] = useState('');
 
   useEffect(() => {
     if (patient) {
@@ -43,6 +45,11 @@ export default function PatientForm({ patient, onSave, onCancel }) {
         emergencia_number: patient.emergencia_number || '',
         condiciones_medicas: patient.condiciones_medicas || '',
         alergias: patient.alergias || '',
+        extras: Array.isArray(patient.extras)
+          ? patient.extras
+          : patient.extras
+          ? patient.extras.split('\n').map(e => e.replace(/^- /, '').trim())
+          : [],
       });
     }
   }, [patient]);
@@ -53,8 +60,8 @@ export default function PatientForm({ patient, onSave, onCancel }) {
       .catch(err => console.error('Error cargando tipos de documento:', err));
 
     getLabelPat()
-     .then(data => setLabelPatients(data))
-     .catch(err => console.error('Error cargando etiquetas:', err));
+      .then(data => setLabelPatients(data))
+      .catch(err => console.error('Error cargando etiquetas:', err));
   }, []);
 
   const handleChange = (e) => {
@@ -78,11 +85,18 @@ export default function PatientForm({ patient, onSave, onCancel }) {
     if (!validateForm()) return;
 
     try {
+      const payload = {
+        ...formData,
+        extras: Array.isArray(formData.extras)
+          ? formData.extras.join('\n- ')
+          : formData.extras,
+      };
+
       if (patient?.id) {
-        await updatePatient(patient.id, formData);
+        await updatePatient(patient.id, payload);
         toast.success("Paciente actualizado correctamente");
       } else {
-        await createPatient(formData);
+        await createPatient(payload);
         toast.success("Paciente registrado correctamente");
       }
       if (onSave) onSave();
@@ -90,6 +104,22 @@ export default function PatientForm({ patient, onSave, onCancel }) {
       console.error("Error al guardar el paciente:", error);
       console.error("Detalles del error:", error.response?.data || error.message);
     }
+  };
+
+  const handleAddExtra = () => {
+    if (newExtra.trim() === '') return;
+    setFormData(prev => ({
+      ...prev,
+      extras: [...(prev.extras || []), newExtra.trim()]
+    }));
+    setNewExtra('');
+  };
+
+  const handleRemoveExtra = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      extras: prev.extras.filter((_, i) => i !== index)
+    }));
   };
 
   const getBgColorByEtiqueta = (code) => {
@@ -290,6 +320,47 @@ export default function PatientForm({ patient, onSave, onCancel }) {
                   rows="2"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
+              </div>
+
+              {/* Campo Extras con lista y botón + */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Extras</label>
+                <div className="flex space-x-2 mb-2">
+                  <input
+                    type="text"
+                    value={newExtra}
+                    onChange={(e) => setNewExtra(e.target.value)}
+                    placeholder="Escribe una nota y presiona +"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddExtra}
+                    className="px-3 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 flex items-center justify-center"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+
+                {Array.isArray(formData.extras) && formData.extras.length > 0 && (
+                  <ul className="space-y-2">
+                    {formData.extras.map((extra, index) => (
+                      <li
+                        key={index}
+                        className="flex justify-between items-center bg-gray-50 border px-3 py-2 rounded-lg"
+                      >
+                        <span>{extra}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveExtra(index)}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          Eliminar
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
           </div>

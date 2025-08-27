@@ -5,6 +5,7 @@ import { getMedicalRecords } from '../../lib/api';
 export default function PatientView({ patient, onClose, onEdit }) {
   const [medicalRecords, setMedicalRecords] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAllRecords, setShowAllRecords] = useState(false);
 
   useEffect(() => {
     loadMedicalRecords();
@@ -12,7 +13,7 @@ export default function PatientView({ patient, onClose, onEdit }) {
 
   const loadMedicalRecords = async () => {
     try {
-      const records = await getMedicalRecords(); // si quieres filtrar por paciente, aplica un filtro en el backend o aquí
+      const records = await getMedicalRecords();
       const filtered = records.filter(r => r.patient_id === patient.id);
       setMedicalRecords(filtered);
     } catch (error) {
@@ -101,20 +102,20 @@ export default function PatientView({ patient, onClose, onEdit }) {
           </div>
 
           {/* Emergency Contact */}
-          {(patient.contacto_emergencia || patient.celular_emergencia) && (
+          {(patient.emergencia_nombre || patient.emergencia_number) && (
             <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Contacto de Emergencia</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {patient.contacto_emergencia && (
+                {patient.emergencia_nombre && (
                   <div>
                     <p className="text-sm text-gray-600">Nombre</p>
-                    <p className="font-medium text-gray-800">{patient.contacto_emergencia}</p>
+                    <p className="font-medium text-gray-800">{patient.emergencia_nombre}</p>
                   </div>
                 )}
-                {patient.celular_emergencia && (
+                {patient.emergencia_number && (
                   <div>
                     <p className="text-sm text-gray-600">Celular</p>
-                    <p className="font-medium text-gray-800">{patient.celular_emergencia}</p>
+                    <p className="font-medium text-gray-800">{patient.emergencia_number}</p>
                   </div>
                 )}
               </div>
@@ -122,7 +123,7 @@ export default function PatientView({ patient, onClose, onEdit }) {
           )}
 
           {/* Medical Info */}
-          {(patient.condiciones_medicas || patient.alergias) && (
+          {(patient.condiciones_medicas || patient.alergias || patient.extras) && (
             <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
                 <AlertTriangle className="h-5 w-5 text-amber-500" />
@@ -139,6 +140,12 @@ export default function PatientView({ patient, onClose, onEdit }) {
                   <div>
                     <p className="text-sm font-medium text-gray-700 mb-1">Alergias</p>
                     <p className="text-gray-800 bg-red-50 p-3 rounded-lg border border-red-200">{patient.alergias}</p>
+                  </div>
+                )}
+                {patient.extras && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-1">Extras</p>
+                    <p className="text-gray-800 bg-blue-50 p-3 rounded-lg border border-blue-200">{patient.extras}</p>
                   </div>
                 )}
               </div>
@@ -179,7 +186,7 @@ export default function PatientView({ patient, onClose, onEdit }) {
               <p className="text-gray-500 text-center py-4">No hay historias clínicas</p>
             ) : (
               <div className="space-y-3">
-                {medicalRecords.slice(0, 3).map((record) => (
+                {(showAllRecords ? medicalRecords : medicalRecords.slice(0, 3)).map((record) => (
                   <div key={record.id} className="p-3 bg-gray-50 rounded-lg">
                     <p className="font-medium text-gray-800 text-sm">{record.treatment}</p>
                     <p className="text-xs text-gray-600">
@@ -188,9 +195,12 @@ export default function PatientView({ patient, onClose, onEdit }) {
                   </div>
                 ))}
                 {medicalRecords.length > 3 && (
-                  <p className="text-sm text-emerald-600 text-center font-medium">
-                    +{medicalRecords.length - 3} más
-                  </p>
+                  <button
+                    onClick={() => setShowAllRecords(!showAllRecords)}
+                    className="text-sm text-emerald-600 font-medium w-full text-center hover:underline"
+                  >
+                    {showAllRecords ? 'Ver menos' : `Ver todas (${medicalRecords.length})`}
+                  </button>
                 )}
               </div>
             )}

@@ -59,7 +59,7 @@ class HistoriasPorPaciente(APIView):
                         'servicio_nombre': cita.servicio.nombre,
                         'tratamiento': historia.tratamiento,
                         'observaciones': historia.observaciones,
-                        'recomendaciones': historia.recomendaciones
+                        'recomendaciones': historia.recomendaciones,
                     })
 
             if citas_data:
