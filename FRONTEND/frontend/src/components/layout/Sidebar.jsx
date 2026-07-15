@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Calendar, Users, FileText, BarChart3, Settings, FileBarChart } from 'lucide-react';
+import logo from '../../assets/icon.png';
 
 const menuItems = [
   { path: '/dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -18,7 +19,7 @@ export default function Sidebar() {
     <div className="w-64 bg-gradient-to-b from-emerald-50 to-teal-50 border-r border-emerald-100 h-screen flex flex-col">
       <div className="p-6 border-b border-emerald-100">
         <div className="flex space-x-3">
-          <img src="src\assets\icon.png" alt="Logo" />
+          <img src={logo} alt="Logo" />
         </div>
       </div>
 
