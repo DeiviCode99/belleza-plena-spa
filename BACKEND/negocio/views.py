@@ -1,4 +1,4 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import viewsets, status
@@ -6,6 +6,7 @@ from rest_framework.permissions import AllowAny
 from django.contrib.auth.models import User
 from .models import *
 from .serializers import *
+from .throttles import RegisterAnonThrottle
 
 
 class PacienteViewSet(viewsets.ModelViewSet):
@@ -97,6 +98,7 @@ class LabelPatient(APIView):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([RegisterAnonThrottle])
 def register(request):
     username = request.data.get('username')
     password = request.data.get('password')

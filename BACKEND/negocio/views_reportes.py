@@ -13,11 +13,12 @@ from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable,
 )
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, throttle_classes
 from rest_framework.response import Response
 from rest_framework import status
 
 from .models import Cita, Paciente
+from .throttles import ReportUserThrottle
 
 
 @api_view(['GET'])
@@ -107,6 +108,7 @@ def report_month_detail(request, mes):
 
 
 @api_view(['GET'])
+@throttle_classes([ReportUserThrottle])
 def report_pdf(request, mes):
     try:
         year, month = map(int, mes.split('-'))
