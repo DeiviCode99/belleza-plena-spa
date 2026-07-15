@@ -187,8 +187,8 @@ export default function ServicesForm({ service, onSave, onCancel }) {
 
           {/* Selector flotante */}
           {showTreatmentSelector && (
-            <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md space-y-4">
+            <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center">
+              <div className="bg-white w-full max-w-md rounded-t-2xl md:rounded-lg p-6 max-h-[90vh] overflow-y-auto space-y-4">
                 <h3 className="text-lg font-semibold">Selecciona tratamientos</h3>
                 <div className="max-h-64 overflow-y-auto space-y-2">
                   {allTreatments.map((t) => (

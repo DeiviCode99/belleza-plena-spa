@@ -108,45 +108,54 @@ export default function TreatmentsList() {
         <div className="text-center py-20 text-gray-500">No hay tratamientos registrados</div>
       ) : (
         <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-          <table className="w-full table-auto">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duración</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {treatments.map((treatment) => (
-                <tr key={treatment.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{treatment.nombre}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{treatment.duracion} min</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{treatment.descripcion}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                    <button
-                      onClick={() => handleEdit(treatment)}
-                      className="text-emerald-600 hover:text-emerald-900"
-                    >
-                      <Edit className="h-5 w-5 inline" />
-                    </button>
-                    <button
-                      onClick={() => confirmDeleteTreatment(treatment)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      <Trash2 className="h-5 w-5 inline" />
-                    </button>
-                  </td>
+          <>
+            <table className="w-full table-auto hidden md:table">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duración</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
                 </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {treatments.map((treatment) => (
+                  <tr key={treatment.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{treatment.nombre}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{treatment.duracion} min</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{treatment.descripcion}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                      <button onClick={() => handleEdit(treatment)} className="text-emerald-600 hover:text-emerald-900 p-2"><Edit className="h-5 w-5" /></button>
+                      <button onClick={() => confirmDeleteTreatment(treatment)} className="text-red-600 hover:text-red-900 p-2"><Trash2 className="h-5 w-5" /></button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="block md:hidden divide-y divide-gray-200">
+              {treatments.map((treatment) => (
+                <div key={treatment.id} className="p-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900">{treatment.nombre}</p>
+                      <p className="text-sm text-gray-500 mt-0.5">{treatment.duracion} min</p>
+                      {treatment.descripcion && <p className="text-sm text-gray-500 truncate">{treatment.descripcion}</p>}
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button onClick={() => handleEdit(treatment)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Editar"><Edit className="h-5 w-5" /></button>
+                      <button onClick={() => confirmDeleteTreatment(treatment)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Eliminar"><Trash2 className="h-5 w-5" /></button>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </>
         </div>
       )}
 
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center">
+          <div className="bg-white w-full max-w-md rounded-t-2xl md:rounded-lg p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">¿Eliminar Cita?</h3>
             <p className="text-sm text-gray-600 mb-6">
               Esta acción no se puede deshacer. ¿Deseas eliminar el tratamiento de la lista <strong>{treatmentToDelete?.nombre}</strong>?

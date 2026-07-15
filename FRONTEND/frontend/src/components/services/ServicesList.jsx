@@ -82,48 +82,56 @@ export default function ServicesList() {
         {services.length === 0 ? (
           <p className="text-center py-8 text-gray-500">No hay servicios registrados.</p>
         ) : (
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nombre</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Duración</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Precio</th>
-                <th className="px-6 py-3 text-right text-sm font-semibold text-gray-700">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {services.map((service) => (
-                <tr key={service.id}>
-                  <td className="px-6 py-4 text-gray-800">{service.nombre}</td>
-                  <td className="px-6 py-4 text-gray-600">{service.duracion} min</td>
-                  <td className="px-6 py-4 text-gray-600">${parseFloat(service.precio).toFixed(2)}</td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end space-x-2">
-                      <button
-                        onClick={() => handleEdit(service)}
-                        className="text-emerald-600 hover:text-emerald-800 p-1 rounded hover:bg-emerald-50"
-                      >
-                        <Edit className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => confirmDelete(service)}
-                        className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </td>
+          <>
+            <table className="w-full hidden md:table">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nombre</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Duración</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Precio</th>
+                  <th className="px-6 py-3 text-right text-sm font-semibold text-gray-700">Acciones</th>
                 </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {services.map((service) => (
+                  <tr key={service.id}>
+                    <td className="px-6 py-4 text-gray-800">{service.nombre}</td>
+                    <td className="px-6 py-4 text-gray-600">{service.duracion} min</td>
+                    <td className="px-6 py-4 text-gray-600">${parseFloat(service.precio).toFixed(2)}</td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end space-x-2">
+                        <button onClick={() => handleEdit(service)} className="text-emerald-600 hover:text-emerald-800 p-2 rounded hover:bg-emerald-50"><Edit className="h-5 w-5" /></button>
+                        <button onClick={() => confirmDelete(service)} className="text-red-600 hover:text-red-800 p-2 rounded hover:bg-red-50"><Trash2 className="h-5 w-5" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="block md:hidden divide-y divide-gray-200">
+              {services.map((service) => (
+                <div key={service.id} className="p-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900">{service.nombre}</p>
+                      <p className="text-sm text-gray-500 mt-0.5">{service.duracion} min · ${parseFloat(service.precio).toFixed(2)}</p>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button onClick={() => handleEdit(service)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Editar"><Edit className="h-5 w-5" /></button>
+                      <button onClick={() => confirmDelete(service)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Eliminar"><Trash2 className="h-5 w-5" /></button>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </>
         )}
       </div>
 
       {/* Modal de confirmación */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center">
+          <div className="bg-white w-full max-w-md rounded-t-2xl md:rounded-lg p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">¿Eliminar Servicio?</h3>
             <p className="text-sm text-gray-600 mb-6">
               Esta acción no se puede deshacer. ¿Deseas eliminar el servicio <strong>{serviceToDelete?.nombre}</strong>?
