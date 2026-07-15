@@ -38,6 +38,10 @@ Thumbs.db
 # Static files (collectstatic output)
 staticfiles/
 
+# Generated graph outputs
+docs/*.png
+docs/*.svg
+
 # Environment
 .env
 .env.local

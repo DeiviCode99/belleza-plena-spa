@@ -1,0 +1,75 @@
+digraph SPA_Management {
+    rankdir=TB;
+    compound=true;
+    fontname="Arial";
+    fontsize=12;
+    bgcolor="#f8f9fa";
+
+    node [style="filled,rounded", fontname="Arial", fontsize=10];
+
+    subgraph cluster_frontend {
+        label="Frontend — Vercel";
+        style="filled,rounded,dashed";
+        color="#1565c0";
+        fillcolor="#e3f2fd";
+        fontcolor="#0d47a1";
+        fontsize=14;
+
+        REACT [label="React 19 + Vite", fillcolor="#bbdefb"];
+        TAILWIND [label="TailwindCSS", fillcolor="#bbdefb"];
+        ROUTER [label="React Router v6", fillcolor="#bbdefb"];
+        SUPABASE_JS [label="Supabase JS Client", fillcolor="#bbdefb"];
+        AXIOS [label="Axios", fillcolor="#bbdefb"];
+    }
+
+    subgraph cluster_backend {
+        label="Backend — Render";
+        style="filled,rounded,dashed";
+        color="#2e7d32";
+        fillcolor="#e8f5e9";
+        fontcolor="#1b5e20";
+        fontsize=14;
+
+        DJANGO [label="Django 6.0 + DRF", fillcolor="#c8e6c9"];
+        GUNICORN [label="Gunicorn", fillcolor="#c8e6c9"];
+        JWT [label="SimpleJWT + SupabaseJWT", fillcolor="#c8e6c9"];
+        REPORTLAB [label="ReportLab (PDF)", fillcolor="#c8e6c9"];
+        SPECTACULAR [label="drf-spectacular (Swagger)", fillcolor="#c8e6c9"];
+        WHITENOISE [label="WhiteNoise (Static)", fillcolor="#c8e6c9"];
+        CORS [label="django-cors-headers", fillcolor="#c8e6c9"];
+        CSP [label="django-csp", fillcolor="#c8e6c9"];
+        RLS_CMD [label="enable_rls (management cmd)", fillcolor="#c8e6c9"];
+    }
+
+    subgraph cluster_supabase {
+        label="Supabase";
+        style="filled,rounded,dashed";
+        color="#e65100";
+        fillcolor="#fff3e0";
+        fontcolor="#bf360c";
+        fontsize=14;
+
+        PG [label="PostgreSQL 17", fillcolor="#ffe0b2"];
+        AUTH [label="Supabase Auth (JWT ES256)", fillcolor="#ffe0b2"];
+    }
+
+    USER [label="Usuario", shape="circle", fillcolor="#f3e5f5", color="#6a1b9a", fontcolor="#4a148c"];
+
+    USER -> REACT [label="HTTPS", fontsize=9];
+    REACT -> SUPABASE_JS [label="Login/Logout", fontsize=9];
+    SUPABASE_JS -> AUTH [label="signInWithPassword()", fontsize=9];
+    REACT -> AXIOS [label="API Calls", fontsize=9];
+    AXIOS -> DJANGO [label="GET/POST/PUT/DELETE (Bearer JWT)", fontsize=9];
+    DJANGO -> JWT [label="Validate JWT", fontsize=9];
+    JWT -> AUTH [label="ES256 via JWKS", fontsize=9, style="dashed"];
+    JWT -> DJANGO [label="HS256 fallback", fontsize=9, style="dotted"];
+    DJANGO -> PG [label="SQL", fontsize=9];
+    DJANGO -> RLS_CMD [label="Enable RLS", fontsize=9, style="dashed"];
+    RLS_CMD -> PG [label="ALTER TABLE ENABLE RLS", fontsize=9, style="dashed"];
+    DJANGO -> REPORTLAB [label="PDF Generation", fontsize=9];
+    DJANGO -> SPECTACULAR [label="API Schema", fontsize=9];
+    GUNICORN -> DJANGO [label="WSGI", fontsize=9, style="invis"];
+    WHITENOISE -> DJANGO [label="Static Files", fontsize=9];
+    CORS -> DJANGO [label="Allow Frontend", fontsize=9];
+    CSP -> DJANGO [label="Security Headers", fontsize=9];
+}
