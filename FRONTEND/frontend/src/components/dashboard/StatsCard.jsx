@@ -27,7 +27,7 @@ export default function StatsCard({ title, value, icon: Icon, color, trend }) {
   const colors = colorClasses[color];
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow duration-300">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-xl transition-shadow duration-300 hover-lift">
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>

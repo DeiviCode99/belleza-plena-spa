@@ -69,7 +69,7 @@ export default function SnacksList() {
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold">Aperitivos</h2>
         <button
-          className="bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 flex items-center gap-2"
+          className="btn bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 flex items-center gap-2"
           onClick={() => {
             setSelectedSnack(null);
             setShowForm(true);
@@ -82,16 +82,16 @@ export default function SnacksList() {
 
       <div className="bg-white rounded-lg shadow border divide-y">
         {snacks.map((snack) => (
-          <div key={snack.id} className="flex justify-between items-center p-4 hover:bg-gray-50">
+          <div key={snack.id} className="flex justify-between items-center p-4 hover:bg-brand-50">
             <div>
               <h3 className="font-medium text-gray-800">{snack.nombre}</h3>
               <p className="text-sm text-gray-600">${snack.precio}</p>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => handleEdit(snack)} title="Editar">
+              <button onClick={() => handleEdit(snack)} className="btn-icon" title="Editar">
                 <Edit className="text-emerald-600 hover:text-emerald-800" />
               </button>
-              <button onClick={() => confirmDelete(snack)} title="Eliminar">
+              <button onClick={() => confirmDelete(snack)} className="btn-icon" title="Eliminar">
                 <Trash2 className="text-red-600 hover:text-red-800" />
               </button>
             </div>
@@ -101,8 +101,8 @@ export default function SnacksList() {
 
       {/* Modal de confirmación */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center">
-          <div className="bg-white w-full max-w-md rounded-t-2xl md:rounded-lg p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center modal-overlay-enter">
+          <div className="bg-white w-full max-w-md rounded-t-2xl md:rounded-lg p-6 max-h-[90vh] overflow-y-auto modal-enter">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">¿Eliminar Aperitivo?</h3>
             <p className="text-sm text-gray-600 mb-6">
               Esta acción no se puede deshacer. ¿Deseas eliminar el aperitivo <strong>{snackToDelete?.nombre}</strong>?
@@ -116,7 +116,7 @@ export default function SnacksList() {
               </button>
               <button
                 onClick={handleDeleteConfirmed}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                className="btn px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
               >
                 Eliminar
               </button>

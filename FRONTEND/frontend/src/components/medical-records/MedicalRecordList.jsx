@@ -73,7 +73,7 @@ export default function MedicalRecordList() {
             <div className="flex justify-end mb-4">
               <button
                 onClick={exportToPDF}
-                className="bg-emerald-500 text-white px-4 py-2 rounded hover:bg-emerald-600"
+                className="btn bg-emerald-500 text-white px-4 py-2 rounded hover:bg-emerald-600"
               >
                 Descargar PDF
               </button>

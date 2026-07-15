@@ -10,6 +10,7 @@ import {
   getAppointmentStatuses
 } from '../../lib/api';
 import AppointmentForm from './AppointmentForm';
+import Skeleton from '../ui/Skeleton';
 import { toast } from 'react-toastify';
 
 export default function AppointmentList() {
@@ -165,7 +166,7 @@ export default function AppointmentList() {
           </div>
           <button
             onClick={handleNewAppointment}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            className="btn bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
           >
             <Plus className="h-5 w-5" />
             Nueva Cita
@@ -175,16 +176,16 @@ export default function AppointmentList() {
 
       {/* Lista de Citas */}
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin h-8 w-8 border-b-2 border-emerald-500 rounded-full"></div>
+        <div className="space-y-3 p-4">
+          <Skeleton className="h-16 w-full" count={5} />
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-lg border divide-y max-h-[calc(100vh-220px)] overflow-y-auto">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 divide-y max-h-[calc(100vh-220px)] overflow-y-auto">
           {filteredAppointments.length === 0 ? (
             <div className="text-center py-12 text-gray-500">No hay citas registradas</div>
           ) : (
             filteredAppointments.map((appt) => (
-              <div key={appt.id} className="p-4 flex justify-between items-center hover:bg-gray-50">
+              <div key={appt.id} className="p-4 flex justify-between items-center hover:bg-brand-50">
                 <div className="flex flex-col gap-1">
                   <h3 className="font-semibold text-gray-800">
                     {appt.paciente?.nombres} {appt.paciente?.apellidos}
@@ -208,18 +209,18 @@ export default function AppointmentList() {
                   </span>
                   {appt.estado === 'PEND' && (
                     <>
-                      <button onClick={() => handleStatusChange(appt, 'REAL')} title="Marcar como realizada">
+                      <button onClick={() => handleStatusChange(appt, 'REAL')} className="btn-icon" title="Marcar como realizada">
                         <CheckCircle className="text-green-600 hover:text-green-800" />
                       </button>
-                      <button onClick={() => handleStatusChange(appt, 'CANC')} title="Cancelar">
+                      <button onClick={() => handleStatusChange(appt, 'CANC')} className="btn-icon" title="Cancelar">
                         <XCircle className="text-red-600 hover:text-red-800" />
                       </button>
                     </>
                   )}
-                  <button onClick={() => handleEditAppointment(appt)} title="Editar">
+                  <button onClick={() => handleEditAppointment(appt)} className="btn-icon" title="Editar">
                     <Edit className="text-emerald-600 hover:text-emerald-800" />
                   </button>
-                  <button onClick={() => confirmDeleteAppointment(appt)} title="Eliminar">
+                  <button onClick={() => confirmDeleteAppointment(appt)} className="btn-icon" title="Eliminar">
                     <Trash2 className="text-red-600 hover:text-red-800" />
                   </button>
                 </div>
@@ -231,8 +232,8 @@ export default function AppointmentList() {
 
       {/* Modal Confirmación Eliminación */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center">
-          <div className="bg-white w-full max-w-md rounded-t-2xl md:rounded-lg p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center modal-overlay-enter">
+          <div className="bg-white w-full max-w-md rounded-t-2xl md:rounded-lg p-6 max-h-[90vh] overflow-y-auto modal-enter">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">¿Eliminar Cita?</h3>
             <p className="text-sm text-gray-600 mb-6">
               Esta acción no se puede deshacer. ¿Deseas eliminar la cita del paciente <strong>{appointmentToDelete?.paciente?.nombres}</strong>?
@@ -246,7 +247,7 @@ export default function AppointmentList() {
               </button>
               <button
                 onClick={handleDeleteConfirmed}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                className="btn px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
               >
                 Eliminar
               </button>

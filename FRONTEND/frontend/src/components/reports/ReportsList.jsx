@@ -57,7 +57,7 @@ export default function ReportsList() {
           {months.map((mes) => (
             <div
               key={mes.mes}
-              className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center justify-between hover:shadow-md transition"
+              className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center justify-between hover:shadow-md transition-all duration-200"
             >
               <div className="flex items-center space-x-4">
                 <div className="bg-emerald-100 p-3 rounded-lg">
@@ -73,7 +73,7 @@ export default function ReportsList() {
               <button
                 onClick={() => handleDownload(mes.mes)}
                 disabled={downloading === mes.mes}
-                className="flex items-center space-x-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-300 text-white px-4 py-2 rounded-lg transition"
+                className="btn flex items-center space-x-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-300 text-white px-4 py-2 rounded-lg transition-all duration-200"
               >
                 {downloading === mes.mes ? (
                   <Loader className="h-4 w-4 animate-spin" />

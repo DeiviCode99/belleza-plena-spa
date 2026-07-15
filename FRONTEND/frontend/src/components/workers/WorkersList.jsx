@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Plus, Edit, Trash2 } from 'lucide-react';
 import { getWorkers, createWorker, updateWorker, deleteWorker } from '../../lib/api';
 import WorkersForm from './WorkersForm';
+import Skeleton from '../ui/Skeleton';
 import { toast } from 'react-toastify';
 
 export default function WorkerList() {
@@ -106,12 +107,12 @@ export default function WorkerList() {
             placeholder="Buscar colaboradores..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2.5 md:py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            className="pl-10 pr-4 py-2.5 md:py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 focus:outline-none"
           />
         </div>
         <button
           onClick={handleNewWorker}
-          className="bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition-colors flex items-center space-x-2"
+          className="btn bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition-colors flex items-center space-x-2"
         >
           <Plus className="h-5 w-5" />
           <span>Nuevo Colaborador</span>
@@ -120,11 +121,11 @@ export default function WorkerList() {
 
       {/* Lista de trabajadores */}
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+        <div className="space-y-3 p-4">
+          <Skeleton className="h-16 w-full" count={5} />
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           {filteredWorkers.length === 0 ? (
             <div className="text-center py-12 text-gray-500">No se encontraron colaboradores</div>
           ) : (
@@ -140,14 +141,14 @@ export default function WorkerList() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredWorkers.map(worker => (
-                    <tr key={worker.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={worker.id} className="hover:bg-brand-50 transition-colors">
                       <td className="px-6 py-4">{worker.nombres} {worker.apellidos}</td>
                       <td className="px-6 py-4">{worker.tipo_documento} {worker.numero_documento}</td>
                       <td className="px-6 py-4">{worker.celular}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end space-x-2">
-                          <button onClick={() => handleEditWorker(worker)} className="text-emerald-600 hover:text-emerald-800 p-2 rounded hover:bg-emerald-50" title="Editar"><Edit className="h-5 w-5" /></button>
-                          <button onClick={() => confirmDeleteWorker(worker)} className="text-red-600 hover:text-red-800 p-2 rounded hover:bg-red-50" title="Eliminar"><Trash2 className="h-5 w-5" /></button>
+                          <button onClick={() => handleEditWorker(worker)} className="btn-icon text-emerald-600 hover:text-emerald-800 p-2 rounded hover:bg-emerald-50" title="Editar"><Edit className="h-5 w-5" /></button>
+                          <button onClick={() => confirmDeleteWorker(worker)} className="btn-icon text-red-600 hover:text-red-800 p-2 rounded hover:bg-red-50" title="Eliminar"><Trash2 className="h-5 w-5" /></button>
                         </div>
                       </td>
                     </tr>
@@ -156,7 +157,7 @@ export default function WorkerList() {
               </table>
               <div className="block md:hidden divide-y divide-gray-200">
                 {filteredWorkers.map(worker => (
-                  <div key={worker.id} className="p-4 hover:bg-gray-50 transition-colors">
+                  <div key={worker.id} className="p-4 hover:bg-brand-50 transition-colors">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-900">{worker.nombres} {worker.apellidos}</p>
@@ -164,8 +165,8 @@ export default function WorkerList() {
                         <p className="text-sm text-gray-500">{worker.celular}</p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        <button onClick={() => handleEditWorker(worker)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Editar"><Edit className="h-5 w-5" /></button>
-                        <button onClick={() => confirmDeleteWorker(worker)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Eliminar"><Trash2 className="h-5 w-5" /></button>
+                        <button onClick={() => handleEditWorker(worker)} className="btn-icon p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Editar"><Edit className="h-5 w-5" /></button>
+                        <button onClick={() => confirmDeleteWorker(worker)} className="btn-icon p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Eliminar"><Trash2 className="h-5 w-5" /></button>
                       </div>
                     </div>
                   </div>
@@ -178,8 +179,8 @@ export default function WorkerList() {
 
       {/* Modal de eliminación */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center">
-          <div className="bg-white w-full max-w-md rounded-t-2xl md:rounded-lg p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center modal-overlay-enter">
+          <div className="bg-white w-full max-w-md rounded-t-2xl md:rounded-lg p-6 max-h-[90vh] overflow-y-auto modal-enter">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">¿Eliminar Colaborador?</h3>
             <p className="text-sm text-gray-600 mb-6">
               Esta acción no se puede deshacer. ¿Deseas eliminar al colaborador <strong>{workerToDelete?.nombres} {workerToDelete?.apellidos}</strong>?
@@ -193,7 +194,7 @@ export default function WorkerList() {
               </button>
               <button
                 onClick={handleDeleteConfirmed}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                className="btn px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
               >
                 Eliminar
               </button>

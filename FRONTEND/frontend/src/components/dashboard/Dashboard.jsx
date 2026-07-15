@@ -102,44 +102,46 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatsCard title="Total Pacientes" value={stats.totalPatients} icon={Users} color="emerald" />
-        <StatsCard title="Citas Hoy" value={stats.todayAppointments} icon={Calendar} color="blue" />
-        <StatsCard
-          title="Ingresos del Mes"
-          value={Number(stats.monthlyRevenue).toLocaleString('es-CO', {
-            style: 'currency',
-            currency: 'COP',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}
-          icon={DollarSign}
-          color="amber"
-        />
-        <StatsCard title="Tratamientos Completados" value={stats.completedTreatments} icon={CheckCircle} color="rose" />
+        <div className="animate-fade-in-up stagger-1"><StatsCard title="Total Pacientes" value={stats.totalPatients} icon={Users} color="emerald" /></div>
+        <div className="animate-fade-in-up stagger-2"><StatsCard title="Citas Hoy" value={stats.todayAppointments} icon={Calendar} color="blue" /></div>
+        <div className="animate-fade-in-up stagger-3">
+          <StatsCard
+            title="Ingresos del Mes"
+            value={Number(stats.monthlyRevenue).toLocaleString('es-CO', {
+              style: 'currency',
+              currency: 'COP',
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            })}
+            icon={DollarSign}
+            color="amber"
+          />
+        </div>
+        <div className="animate-fade-in-up stagger-4"><StatsCard title="Tratamientos Completados" value={stats.completedTreatments} icon={CheckCircle} color="rose" /></div>
       </div>
 
       {/* Acciones y Citas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Acciones rápidas */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Acciones Rápidas</h3>
           <div className="space-y-3">
             <button
-              className="w-full bg-emerald-500 text-white px-4 py-3 rounded-lg hover:bg-emerald-600 flex items-center space-x-2"
+              className="btn w-full bg-emerald-500 text-white px-4 py-3 rounded-lg hover:bg-emerald-600 flex items-center space-x-2"
               onClick={() => setShowAppointmentForm(true)}
             >
               <Calendar className="h-5 w-5" />
               <span>Nueva Cita</span>
             </button>
             <button
-              className="w-full bg-blue-500 text-white px-4 py-3 rounded-lg hover:bg-blue-600 flex items-center space-x-2"
+              className="btn w-full bg-blue-500 text-white px-4 py-3 rounded-lg hover:bg-blue-600 flex items-center space-x-2"
               onClick={() => setShowPatientForm(true)}
             >
               <Users className="h-5 w-5" />
               <span>Nuevo Paciente</span>
             </button>
             <button
-              className="w-full bg-teal-500 text-white px-4 py-3 rounded-lg hover:bg-teal-600 flex items-center space-x-2"
+              className="btn w-full bg-teal-500 text-white px-4 py-3 rounded-lg hover:bg-teal-600 flex items-center space-x-2"
               onClick={() => setShowReportsModal(true)}
             >
               <TrendingUp className="h-5 w-5" />
@@ -149,7 +151,7 @@ export default function Dashboard() {
         </div>
 
         {/* Próximas citas */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Próximas Citas</h3>
           <div className="space-y-3">
             {upcomingAppointments.length === 0 ? (
@@ -165,7 +167,7 @@ export default function Dashboard() {
                 return (
                   <div
                     key={appointment.id}
-                    className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition"
+                    className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-all duration-200"
                     onClick={() => setSelectedAppointment(appointment)}
                   >
                     <div className="bg-emerald-100 p-2 rounded-full">
@@ -189,8 +191,8 @@ export default function Dashboard() {
 
       {/* Modal: Detalle de cita */}
       {selectedAppointment && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-end md:items-center justify-center">
-          <div className="bg-white w-full max-w-lg rounded-t-2xl md:rounded-xl p-6 max-h-[90vh] overflow-y-auto relative">
+        <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-end md:items-center justify-center modal-overlay-enter">
+          <div className="bg-white w-full max-w-lg rounded-t-2xl md:rounded-xl p-6 max-h-[90vh] overflow-y-auto relative modal-enter">
             <button
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
               onClick={() => setSelectedAppointment(null)}
@@ -210,8 +212,8 @@ export default function Dashboard() {
 
       {/* Modal: Reportes */}
       {showReportsModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center">
-          <div className="bg-white w-full max-w-lg rounded-t-2xl md:rounded-xl p-6 max-h-[90vh] overflow-y-auto relative">
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center modal-overlay-enter">
+          <div className="bg-white w-full max-w-lg rounded-t-2xl md:rounded-xl p-6 max-h-[90vh] overflow-y-auto relative modal-enter">
             <button
               onClick={() => setShowReportsModal(false)}
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
@@ -244,8 +246,8 @@ export default function Dashboard() {
 
       {/* Modal: Formulario de nueva cita */}
       {showAppointmentForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-end md:items-center justify-center">
-          <div className="bg-white w-full max-w-2xl rounded-t-2xl md:rounded-xl p-6 max-h-[90vh] overflow-y-auto relative">
+        <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-end md:items-center justify-center modal-overlay-enter">
+          <div className="bg-white w-full max-w-2xl rounded-t-2xl md:rounded-xl p-6 max-h-[90vh] overflow-y-auto relative modal-enter">
             <button
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
               onClick={() => setShowAppointmentForm(false)}
@@ -265,8 +267,8 @@ export default function Dashboard() {
 
       {/* Modal: Formulario de nuevo paciente */}
       {showPatientForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-end md:items-center justify-center">
-          <div className="bg-white w-full max-w-2xl rounded-t-2xl md:rounded-xl p-6 max-h-[90vh] overflow-y-auto relative">
+        <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-end md:items-center justify-center modal-overlay-enter">
+          <div className="bg-white w-full max-w-2xl rounded-t-2xl md:rounded-xl p-6 max-h-[90vh] overflow-y-auto relative modal-enter">
             <button
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
               onClick={() => setShowPatientForm(false)}

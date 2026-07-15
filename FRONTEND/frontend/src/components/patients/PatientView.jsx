@@ -41,7 +41,7 @@ export default function PatientView({ patient, onClose, onEdit }) {
         <div className="flex items-center space-x-4">
           <button
             onClick={onClose}
-            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+            className="btn-icon p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -54,7 +54,7 @@ export default function PatientView({ patient, onClose, onEdit }) {
         </div>
         <button
           onClick={onEdit}
-          className="bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition-colors flex items-center space-x-2"
+          className="btn bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition-colors flex items-center space-x-2"
         >
           <Edit className="h-4 w-4" />
           <span>Editar</span>
@@ -64,7 +64,7 @@ export default function PatientView({ patient, onClose, onEdit }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Patient Information */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Información Personal</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center space-x-3">
@@ -103,7 +103,7 @@ export default function PatientView({ patient, onClose, onEdit }) {
 
           {/* Emergency Contact */}
           {(patient.emergencia_nombre || patient.emergencia_number) && (
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Contacto de Emergencia</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {patient.emergencia_nombre && (
@@ -124,7 +124,7 @@ export default function PatientView({ patient, onClose, onEdit }) {
 
           {/* Medical Info */}
           {(patient.condiciones_medicas || patient.alergias || patient.extras) && (
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
                 <AlertTriangle className="h-5 w-5 text-amber-500" />
                 <span>Información Médica</span>
@@ -156,7 +156,7 @@ export default function PatientView({ patient, onClose, onEdit }) {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Stats */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Estadísticas</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
@@ -173,7 +173,7 @@ export default function PatientView({ patient, onClose, onEdit }) {
           </div>
 
           {/* Medical Records */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
               <FileText className="h-5 w-5" />
               <span>Historias Recientes</span>

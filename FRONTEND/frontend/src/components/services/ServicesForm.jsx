@@ -98,7 +98,7 @@ export default function ServicesForm({ service, onSave, onCancel }) {
       <div className="flex items-center space-x-4">
         <button
           onClick={onCancel}
-          className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"
+          className="btn-icon p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -107,7 +107,7 @@ export default function ServicesForm({ service, onSave, onCancel }) {
         </h2>
       </div>
 
-      <div className="bg-white rounded-xl shadow-lg border p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -187,8 +187,8 @@ export default function ServicesForm({ service, onSave, onCancel }) {
 
           {/* Selector flotante */}
           {showTreatmentSelector && (
-            <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center">
-              <div className="bg-white w-full max-w-md rounded-t-2xl md:rounded-lg p-6 max-h-[90vh] overflow-y-auto space-y-4">
+            <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center modal-overlay-enter">
+              <div className="bg-white w-full max-w-md rounded-t-2xl md:rounded-lg p-6 max-h-[90vh] overflow-y-auto space-y-4 modal-enter">
                 <h3 className="text-lg font-semibold">Selecciona tratamientos</h3>
                 <div className="max-h-64 overflow-y-auto space-y-2">
                   {allTreatments.map((t) => (
@@ -213,7 +213,7 @@ export default function ServicesForm({ service, onSave, onCancel }) {
                   <button
                     type="button"
                     onClick={applyTreatments}
-                    className="px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg"
+                    className="btn px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg"
                   >
                     Aceptar
                   </button>
@@ -232,7 +232,7 @@ export default function ServicesForm({ service, onSave, onCancel }) {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg flex items-center space-x-2"
+              className="btn px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg flex items-center space-x-2"
             >
               <Save className="h-4 w-4" />
               <span>Guardar</span>

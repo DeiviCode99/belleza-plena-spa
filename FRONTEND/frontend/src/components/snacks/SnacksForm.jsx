@@ -72,7 +72,7 @@ export default function SnacksForm({ snack, onSave, onCancel }) {
         <div className="flex justify-end">
           <button
             type="submit"
-            className="bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 flex items-center gap-2"
+            className="btn bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 flex items-center gap-2"
           >
             <Save className="h-4 w-4" />
             Guardar

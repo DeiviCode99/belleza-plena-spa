@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import PageTransition from './PageTransition';
 import InstallPrompt from '../pwa/InstallPrompt';
 import { ToastContainer } from 'react-toastify';
 
@@ -25,7 +26,9 @@ export default function Layout() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title={title} onMenuToggle={() => setSidebarOpen(true)} />
         <main className="flex-1 overflow-auto p-4 md:p-6">
-          <Outlet />
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
         </main>
         <InstallPrompt />
         <ToastContainer position="top-right" autoClose={2000} />

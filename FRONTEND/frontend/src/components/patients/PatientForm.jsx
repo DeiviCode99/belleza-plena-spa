@@ -143,7 +143,7 @@ export default function PatientForm({ patient, onSave, onCancel }) {
       <div className="flex items-center space-x-4">
         <button
           onClick={onCancel}
-          className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"
+          className="btn-icon p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -153,7 +153,7 @@ export default function PatientForm({ patient, onSave, onCancel }) {
       </div>
 
       {/* Form */}
-      <div className={`${getBgColorByEtiqueta(formData.etiquetas_pac)} rounded-xl shadow-lg border p-6`}>
+      <div className={`${getBgColorByEtiqueta(formData.etiquetas_pac)} rounded-xl shadow-sm border border-gray-100 p-6`}>
         <form onSubmit={handleSubmit} className="space-y-6">
 
           {/* Información Personal */}
@@ -336,7 +336,7 @@ export default function PatientForm({ patient, onSave, onCancel }) {
                   <button
                     type="button"
                     onClick={handleAddExtra}
-                    className="px-3 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 flex items-center justify-center"
+                    className="btn px-3 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 flex items-center justify-center"
                   >
                     <Plus className="h-4 w-4" />
                   </button>
@@ -376,7 +376,7 @@ export default function PatientForm({ patient, onSave, onCancel }) {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg flex items-center space-x-2"
+              className="btn px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg flex items-center space-x-2"
             >
               <Save className="h-4 w-4" />
               <span>Guardar</span>

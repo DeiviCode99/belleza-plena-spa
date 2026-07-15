@@ -43,7 +43,7 @@ export default function Sidebar({ isOpen, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="lg:hidden p-1 rounded-lg hover:bg-emerald-200 transition"
+            className="btn-icon lg:hidden p-1 rounded-lg hover:bg-emerald-200 transition-all duration-200"
             aria-label="Cerrar menú"
           >
             <X className="h-5 w-5 text-emerald-700" />
@@ -52,12 +52,12 @@ export default function Sidebar({ isOpen, onClose }) {
 
         <nav className="flex-1 p-4">
           <ul className="space-y-2">
-            {menuItems.map((item) => {
+            {menuItems.map((item, index) => {
               const IconComponent = item.icon;
               const isActive = location.pathname === item.path;
 
               return (
-                <li key={item.path}>
+                <li key={item.path} className={`animate-fade-in stagger-${index + 1}`}>
                   <button
                     onClick={() => handleNav(item.path)}
                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 min-h-[44px] ${

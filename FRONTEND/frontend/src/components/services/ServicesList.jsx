@@ -71,14 +71,14 @@ export default function ServicesList() {
         <h2 className="text-2xl font-bold text-gray-800">Servicios</h2>
         <button
           onClick={handleNew}
-          className="bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 flex items-center space-x-2"
+          className="btn bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 flex items-center space-x-2"
         >
           <Plus className="h-5 w-5" />
           <span>Nuevo Servicio</span>
         </button>
       </div>
 
-      <div className="bg-white border rounded-xl shadow-lg">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         {services.length === 0 ? (
           <p className="text-center py-8 text-gray-500">No hay servicios registrados.</p>
         ) : (
@@ -100,8 +100,8 @@ export default function ServicesList() {
                     <td className="px-6 py-4 text-gray-600">${parseFloat(service.precio).toFixed(2)}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end space-x-2">
-                        <button onClick={() => handleEdit(service)} className="text-emerald-600 hover:text-emerald-800 p-2 rounded hover:bg-emerald-50"><Edit className="h-5 w-5" /></button>
-                        <button onClick={() => confirmDelete(service)} className="text-red-600 hover:text-red-800 p-2 rounded hover:bg-red-50"><Trash2 className="h-5 w-5" /></button>
+                        <button onClick={() => handleEdit(service)} className="btn-icon text-emerald-600 hover:text-emerald-800 p-2 rounded hover:bg-emerald-50"><Edit className="h-5 w-5" /></button>
+                        <button onClick={() => confirmDelete(service)} className="btn-icon text-red-600 hover:text-red-800 p-2 rounded hover:bg-red-50"><Trash2 className="h-5 w-5" /></button>
                       </div>
                     </td>
                   </tr>
@@ -110,15 +110,15 @@ export default function ServicesList() {
             </table>
             <div className="block md:hidden divide-y divide-gray-200">
               {services.map((service) => (
-                <div key={service.id} className="p-4 hover:bg-gray-50 transition-colors">
+                <div key={service.id} className="p-4 hover:bg-brand-50 transition-colors">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-900">{service.nombre}</p>
                       <p className="text-sm text-gray-500 mt-0.5">{service.duracion} min · ${parseFloat(service.precio).toFixed(2)}</p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <button onClick={() => handleEdit(service)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Editar"><Edit className="h-5 w-5" /></button>
-                      <button onClick={() => confirmDelete(service)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Eliminar"><Trash2 className="h-5 w-5" /></button>
+                      <button onClick={() => handleEdit(service)} className="btn-icon p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Editar"><Edit className="h-5 w-5" /></button>
+                      <button onClick={() => confirmDelete(service)} className="btn-icon p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Eliminar"><Trash2 className="h-5 w-5" /></button>
                     </div>
                   </div>
                 </div>
@@ -130,8 +130,8 @@ export default function ServicesList() {
 
       {/* Modal de confirmación */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center">
-          <div className="bg-white w-full max-w-md rounded-t-2xl md:rounded-lg p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center modal-overlay-enter">
+          <div className="bg-white w-full max-w-md rounded-t-2xl md:rounded-lg p-6 max-h-[90vh] overflow-y-auto modal-enter">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">¿Eliminar Servicio?</h3>
             <p className="text-sm text-gray-600 mb-6">
               Esta acción no se puede deshacer. ¿Deseas eliminar el servicio <strong>{serviceToDelete?.nombre}</strong>?
@@ -145,7 +145,7 @@ export default function ServicesList() {
               </button>
               <button
                 onClick={handleDeleteConfirmed}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                className="btn px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
               >
                 Eliminar
               </button>

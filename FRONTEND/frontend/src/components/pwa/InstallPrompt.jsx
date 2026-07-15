@@ -33,7 +33,7 @@ export default function InstallPrompt() {
       </div>
       <button
         onClick={handleInstall}
-        className="bg-white text-emerald-700 px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-emerald-50 transition"
+        className="bg-white text-emerald-700 px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-emerald-50 transition-all duration-200"
       >
         Instalar
       </button>
