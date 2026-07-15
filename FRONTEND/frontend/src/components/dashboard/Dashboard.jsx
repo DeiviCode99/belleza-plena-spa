@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Users, DollarSign, TrendingUp, Clock, CheckCircle, X } from 'lucide-react';
 import StatsCard from './StatsCard';
-import { getPatients, getAppointments } from '../../lib/api';
+import { getPatients, getAppointments, getReportsList } from '../../lib/api';
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import PatientForm from '../patients/PatientForm';
@@ -91,8 +91,7 @@ export default function Dashboard() {
 
   const loadReports = async () => {
     try {
-      const res = await fetch('/api/reportes/');
-      const data = await res.json();
+      const data = await getReportsList();
       setReports(data);
     } catch (err) {
       console.error('Error al cargar reportes:', err);

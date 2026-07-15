@@ -1,7 +1,7 @@
 from django.urls import path, include
-from rest_framework.documentation import include_docs_urls
 from rest_framework.routers import DefaultRouter
 from .views import *
+from .views_reportes import report_months, report_month_detail, report_pdf, report_list
 
 router = DefaultRouter()
 router.register('pacientes', PacienteViewSet)
@@ -19,5 +19,9 @@ urlpatterns = [
     path('estados-cita/', appointment_statuses, name='estados-cita'),
     path('etiquetas-pac/', LabelPatient.as_view(), name='etiquetas-pac'),
     path('historias-clinicas/', HistoriasPorPaciente.as_view(), name='historias-clinicas'),
-    path('docs/', include_docs_urls(title='Negocio API'))
+    path('register/', register, name='register'),
+    path('reportes/', report_list, name='report-list'),
+    path('reportes/meses/', report_months, name='report-months'),
+    path('reportes/meses/<str:mes>/', report_month_detail, name='report-month-detail'),
+    path('reportes/meses/<str:mes>/pdf/', report_pdf, name='report-pdf'),
 ]

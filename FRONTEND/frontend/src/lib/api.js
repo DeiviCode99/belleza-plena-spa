@@ -60,3 +60,10 @@ export const getDocumentTypes2 = () => api.get('tipos-documento2/').then(res => 
 
 //------------------------ETIQUETAS PACIENTE------------------
 export const getLabelPat = () => api.get('etiquetas-pac/').then(res => res.data);
+
+// ---------------------- REPORTES ----------------------
+export const getReportMonths = () => api.get('reportes/meses/').then(res => res.data);
+export const getMonthReport = (mes) => api.get(`reportes/meses/${mes}/`).then(res => res.data);
+export const getReportsList = () => api.get('reportes/').then(res => res.data);
+export const downloadMonthPdf = (mes) =>
+  api.get(`reportes/meses/${mes}/pdf/`, { responseType: 'blob' }).then(res => res.data);
