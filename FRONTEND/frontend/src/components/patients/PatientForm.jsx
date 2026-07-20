@@ -8,6 +8,9 @@ import {
   getLabelPat
 } from '../../lib/api';
 
+const NAME_RE = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+$/;
+const DIGITS_ONLY = /^\d*$/;
+
 export default function PatientForm({ patient, onSave, onCancel }) {
   const [formData, setFormData] = useState({
     nombres: '',
@@ -45,11 +48,7 @@ export default function PatientForm({ patient, onSave, onCancel }) {
         emergencia_number: patient.emergencia_number || '',
         condiciones_medicas: patient.condiciones_medicas || '',
         alergias: patient.alergias || '',
-        extras: Array.isArray(patient.extras)
-          ? patient.extras
-          : patient.extras
-          ? patient.extras.split('\n').map(e => e.replace(/^- /, '').trim())
-          : [],
+        extras: Array.isArray(patient.extras) ? patient.extras : [],
       });
     }
   }, [patient]);
@@ -72,9 +71,30 @@ export default function PatientForm({ patient, onSave, onCancel }) {
 
   const validateForm = () => {
     const newErrors = {};
+
     if (!formData.nombres.trim()) newErrors.nombres = 'El nombre es requerido';
+    else if (!NAME_RE.test(formData.nombres.trim())) newErrors.nombres = 'Solo se permiten letras y espacios';
+
     if (!formData.apellidos.trim()) newErrors.apellidos = 'El apellido es requerido';
+    else if (!NAME_RE.test(formData.apellidos.trim())) newErrors.apellidos = 'Solo se permiten letras y espacios';
+
     if (!formData.celular.trim()) newErrors.celular = 'El celular es requerido';
+    else if (!DIGITS_ONLY.test(formData.celular)) newErrors.celular = 'Solo se permiten números';
+
+    if (formData.numero_documento && !DIGITS_ONLY.test(formData.numero_documento)) {
+      newErrors.numero_documento = 'Solo se permiten números';
+    }
+    if (formData.numero_documento && formData.numero_documento.length > 10) {
+      newErrors.numero_documento = 'Máximo 10 dígitos';
+    }
+
+    if (formData.emergencia_number && !DIGITS_ONLY.test(formData.emergencia_number)) {
+      newErrors.emergencia_number = 'Solo se permiten números';
+    }
+
+    if (formData.fecha_nacimiento && formData.fecha_nacimiento > new Date().toISOString().split('T')[0]) {
+      newErrors.fecha_nacimiento = 'La fecha no puede ser futura';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -87,9 +107,8 @@ export default function PatientForm({ patient, onSave, onCancel }) {
     try {
       const payload = {
         ...formData,
-        extras: Array.isArray(formData.extras)
-          ? formData.extras.join('\n- ')
-          : formData.extras,
+        nombres: formData.nombres.trim(),
+        apellidos: formData.apellidos.trim(),
       };
 
       if (patient?.id) {
@@ -101,8 +120,18 @@ export default function PatientForm({ patient, onSave, onCancel }) {
       }
       if (onSave) onSave();
     } catch (error) {
+      const data = error.response?.data;
+      if (data && typeof data === 'object') {
+        const fieldErrors = {};
+        Object.entries(data).forEach(([field, msg]) => {
+          fieldErrors[field] = Array.isArray(msg) ? msg[0] : msg;
+        });
+        setErrors(prev => ({ ...prev, ...fieldErrors }));
+        toast.error("Corrige los errores marcados en el formulario");
+      } else {
+        toast.error("Error al guardar el paciente");
+      }
       console.error("Error al guardar el paciente:", error);
-      console.error("Detalles del error:", error.response?.data || error.message);
     }
   };
 
@@ -122,29 +151,29 @@ export default function PatientForm({ patient, onSave, onCancel }) {
     }));
   };
 
-  const getBgColorByEtiqueta = (code) => {
-    switch (code) {
-      case 'NUV':
-        return 'bg-yellow-50';
-      case 'ANT':
-        return 'bg-purple-200';
-      case 'PPN':
-        return 'bg-red-100';
-      case 'JOD':
-        return 'bg-sky-50';
-      default:
-        return 'bg-white';
+  const handleExtraKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddExtra();
     }
   };
 
+  const getBgColorByEtiqueta = (code) => {
+    switch (code) {
+      case 'NUV': return 'bg-yellow-50';
+      case 'ANT': return 'bg-purple-200';
+      case 'PPN': return 'bg-red-100';
+      case 'JOD': return 'bg-sky-50';
+      default: return 'bg-white';
+    }
+  };
+
+  const todayStr = new Date().toISOString().split('T')[0];
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center space-x-4">
-        <button
-          onClick={onCancel}
-          className="btn-icon p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"
-        >
+        <button onClick={onCancel} className="btn-icon p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg">
           <ArrowLeft className="h-5 w-5" />
         </button>
         <h2 className="text-2xl font-bold text-gray-800">
@@ -152,7 +181,6 @@ export default function PatientForm({ patient, onSave, onCancel }) {
         </h2>
       </div>
 
-      {/* Form */}
       <div className={`${getBgColorByEtiqueta(formData.etiquetas_pac)} rounded-xl shadow-sm border border-gray-100 p-6`}>
         <form onSubmit={handleSubmit} className="space-y-6">
 
@@ -164,106 +192,86 @@ export default function PatientForm({ patient, onSave, onCancel }) {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nombres *</label>
                 <input
-                  type="text"
-                  name="nombres"
-                  value={formData.nombres}
-                  onChange={handleChange}
+                  type="text" name="nombres" value={formData.nombres} onChange={handleChange}
+                  pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+"
+                  title="Solo letras y espacios"
                   className={`w-full px-3 py-2 border rounded-lg ${errors.nombres ? 'border-red-500' : 'border-gray-300'}`}
                 />
-                {errors.nombres && <p className="text-sm text-red-600">{errors.nombres}</p>}
+                {errors.nombres && <p className="text-sm text-red-600 mt-1">{errors.nombres}</p>}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Apellidos *</label>
                 <input
-                  type="text"
-                  name="apellidos"
-                  value={formData.apellidos}
-                  onChange={handleChange}
+                  type="text" name="apellidos" value={formData.apellidos} onChange={handleChange}
+                  pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+"
+                  title="Solo letras y espacios"
                   className={`w-full px-3 py-2 border rounded-lg ${errors.apellidos ? 'border-red-500' : 'border-gray-300'}`}
                 />
-                {errors.apellidos && <p className="text-sm text-red-600">{errors.apellidos}</p>}
+                {errors.apellidos && <p className="text-sm text-red-600 mt-1">{errors.apellidos}</p>}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Documento</label>
-                <select
-                  name="tipo_documento"
-                  value={formData.tipo_documento}
-                  onChange={handleChange}
+                <select name="tipo_documento" value={formData.tipo_documento} onChange={handleChange}
                   className={`w-full px-3 py-2 border rounded-lg ${errors.tipo_documento ? 'border-red-500' : 'border-gray-300'}`}
                 >
                   <option value="">Selecciona un tipo</option>
                   {documentTypes.map((tipo) => (
-                    <option key={tipo.codigo} value={tipo.codigo}>
-                      {tipo.nombre}
-                    </option>
+                    <option key={tipo.codigo} value={tipo.codigo}>{tipo.nombre}</option>
                   ))}
                 </select>
-                {errors.tipo_documento && <p className="text-sm text-red-600">{errors.tipo_documento}</p>}
+                {errors.tipo_documento && <p className="text-sm text-red-600 mt-1">{errors.tipo_documento}</p>}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Etiqueta</label>
-                <select
-                  name="etiquetas_pac"
-                  value={formData.etiquetas_pac}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg ${errors.etiquetas_pac ? 'border-red-500' : 'border-gray-300'}`}
+                <select name="etiquetas_pac" value={formData.etiquetas_pac} onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
                   <option value="">Selecciona una etiqueta</option>
                   {labelPatients.map((tipo) => (
-                    <option key={tipo.codigo} value={tipo.codigo}>
-                      {tipo.nombre}
-                    </option>
+                    <option key={tipo.codigo} value={tipo.codigo}>{tipo.nombre}</option>
                   ))}
                 </select>
-                {errors.etiquetas_pac && <p className="text-sm text-red-600">{errors.etiquetas_pac}</p>}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Número de Documento</label>
                 <input
-                  type="text"
-                  name="numero_documento"
-                  value={formData.numero_documento}
-                  onChange={handleChange}
+                  type="text" name="numero_documento" value={formData.numero_documento} onChange={handleChange}
+                  maxLength={10} pattern="[0-9]*" inputMode="numeric"
+                  title="Solo números, máximo 10 dígitos"
                   className={`w-full px-3 py-2 border rounded-lg ${errors.numero_documento ? 'border-red-500' : 'border-gray-300'}`}
                 />
-                {errors.numero_documento && <p className="text-sm text-red-600">{errors.numero_documento}</p>}
+                {errors.numero_documento && <p className="text-sm text-red-600 mt-1">{errors.numero_documento}</p>}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Nacimiento</label>
                 <input
-                  type="date"
-                  name="fecha_nacimiento"
-                  value={formData.fecha_nacimiento}
-                  onChange={handleChange}
+                  type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleChange}
+                  max={todayStr}
                   className={`w-full px-3 py-2 border rounded-lg ${errors.fecha_nacimiento ? 'border-red-500' : 'border-gray-300'}`}
                 />
-                {errors.fecha_nacimiento && <p className="text-sm text-red-600">{errors.fecha_nacimiento}</p>}
+                {errors.fecha_nacimiento && <p className="text-sm text-red-600 mt-1">{errors.fecha_nacimiento}</p>}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Celular *</label>
                 <input
-                  type="tel"
-                  name="celular"
-                  value={formData.celular}
-                  onChange={handleChange}
+                  type="tel" name="celular" value={formData.celular} onChange={handleChange}
+                  maxLength={10} pattern="[0-9]*" inputMode="numeric"
+                  title="Solo números"
                   className={`w-full px-3 py-2 border rounded-lg ${errors.celular ? 'border-red-500' : 'border-gray-300'}`}
                 />
-                {errors.celular && <p className="text-sm text-red-600">{errors.celular}</p>}
+                {errors.celular && <p className="text-sm text-red-600 mt-1">{errors.celular}</p>}
               </div>
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
                 <input
-                  type="text"
-                  name="direccion"
-                  value={formData.direccion}
-                  onChange={handleChange}
+                  type="text" name="direccion" value={formData.direccion} onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
               </div>
@@ -277,22 +285,21 @@ export default function PatientForm({ patient, onSave, onCancel }) {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
                 <input
-                  type="text"
-                  name="emergencia_nombre"
-                  value={formData.emergencia_nombre}
-                  onChange={handleChange}
+                  type="text" name="emergencia_nombre" value={formData.emergencia_nombre} onChange={handleChange}
+                  pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+"
+                  title="Solo letras y espacios"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Celular</label>
                 <input
-                  type="tel"
-                  name="emergencia_number"
-                  value={formData.emergencia_number}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  type="tel" name="emergencia_number" value={formData.emergencia_number} onChange={handleChange}
+                  maxLength={10} pattern="[0-9]*" inputMode="numeric"
+                  title="Solo números"
+                  className={`w-full px-3 py-2 border rounded-lg ${errors.emergencia_number ? 'border-red-500' : 'border-gray-300'}`}
                 />
+                {errors.emergencia_number && <p className="text-sm text-red-600 mt-1">{errors.emergencia_number}</p>}
               </div>
             </div>
           </div>
@@ -303,60 +310,40 @@ export default function PatientForm({ patient, onSave, onCancel }) {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Condiciones Médicas</label>
-                <textarea
-                  name="condiciones_medicas"
-                  value={formData.condiciones_medicas}
-                  onChange={handleChange}
-                  rows="2"
+                <textarea name="condiciones_medicas" value={formData.condiciones_medicas} onChange={handleChange} rows="2"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Alergias</label>
-                <textarea
-                  name="alergias"
-                  value={formData.alergias}
-                  onChange={handleChange}
-                  rows="2"
+                <textarea name="alergias" value={formData.alergias} onChange={handleChange} rows="2"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
               </div>
 
-              {/* Campo Extras con lista y botón + */}
+              {/* Extras con lista dinámica */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Extras</label>
                 <div className="flex space-x-2 mb-2">
                   <input
-                    type="text"
-                    value={newExtra}
-                    onChange={(e) => setNewExtra(e.target.value)}
-                    placeholder="Escribe una nota y presiona +"
+                    type="text" value={newExtra} onChange={(e) => setNewExtra(e.target.value)}
+                    onKeyDown={handleExtraKeyDown}
+                    placeholder="Escribe una nota y presiona Enter o +"
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
                   />
-                  <button
-                    type="button"
-                    onClick={handleAddExtra}
+                  <button type="button" onClick={handleAddExtra}
                     className="btn px-3 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 flex items-center justify-center"
                   >
                     <Plus className="h-4 w-4" />
                   </button>
                 </div>
-
                 {Array.isArray(formData.extras) && formData.extras.length > 0 && (
                   <ul className="space-y-2">
                     {formData.extras.map((extra, index) => (
-                      <li
-                        key={index}
-                        className="flex justify-between items-center bg-gray-50 border px-3 py-2 rounded-lg"
-                      >
+                      <li key={index} className="flex justify-between items-center bg-gray-50 border px-3 py-2 rounded-lg">
                         <span>{extra}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveExtra(index)}
-                          className="text-red-500 hover:text-red-700 text-sm"
-                        >
-                          Eliminar
-                        </button>
+                        <button type="button" onClick={() => handleRemoveExtra(index)}
+                          className="text-red-500 hover:text-red-700 text-sm">Eliminar</button>
                       </li>
                     ))}
                   </ul>
@@ -367,17 +354,12 @@ export default function PatientForm({ patient, onSave, onCancel }) {
 
           {/* Acciones */}
           <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
-            >
+            <button type="button" onClick={onCancel}
+              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg">
               Cancelar
             </button>
-            <button
-              type="submit"
-              className="btn px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg flex items-center space-x-2"
-            >
+            <button type="submit"
+              className="btn px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg flex items-center space-x-2">
               <Save className="h-4 w-4" />
               <span>Guardar</span>
             </button>

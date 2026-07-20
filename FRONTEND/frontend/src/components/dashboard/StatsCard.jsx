@@ -27,25 +27,25 @@ export default function StatsCard({ title, value, icon: Icon, color, trend }) {
   const colors = colorClasses[color];
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-xl transition-shadow duration-300 hover-lift">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 hover:shadow-xl transition-shadow duration-300 hover-lift">
       <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-          <p className="text-3xl font-bold text-gray-900">{value}</p>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1 truncate">{title}</p>
+          <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">{value}</p>
           {trend && (
             <div className="flex items-center mt-2">
-              <span className={`text-sm font-medium ${
+              <span className={`text-xs sm:text-sm font-medium ${
                 trend.isPositive ? 'text-emerald-600' : 'text-rose-600'
               }`}>
                 {trend.isPositive ? '+' : ''}{trend.value}
               </span>
-              <span className="text-sm text-gray-500 ml-1">vs mes anterior</span>
+              <span className="text-xs sm:text-sm text-gray-500 ml-1">vs mes anterior</span>
             </div>
           )}
         </div>
-        <div className={`${colors.bg} p-3 rounded-lg`}>
-          <div className={`${colors.icon} p-2 rounded-lg`}>
-            <Icon className="h-6 w-6 text-white" />
+        <div className={`${colors.bg} p-2 sm:p-3 rounded-lg shrink-0`}>
+          <div className={`${colors.icon} p-1.5 sm:p-2 rounded-lg`}>
+            <Icon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-white" />
           </div>
         </div>
       </div>

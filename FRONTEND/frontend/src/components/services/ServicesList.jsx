@@ -2,7 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { getServices, deleteService } from "../../lib/api";
 import ServicesForm from "./ServicesForm";
+import Pagination from "../ui/Pagination";
+import EmptyState from "../ui/EmptyState";
 import { toast } from "react-toastify";
+
+const ITEMS_PER_PAGE = 10;
 
 export default function ServicesList() {
   const [services, setServices] = useState([]);
@@ -10,6 +14,7 @@ export default function ServicesList() {
   const [selectedService, setSelectedService] = useState(null);
   const [serviceToDelete, setServiceToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     loadServices();
@@ -56,31 +61,32 @@ export default function ServicesList() {
     return (
       <ServicesForm
         service={selectedService}
-        onSave={() => {
-          setShowForm(false);
-          loadServices();
-        }}
+        onSave={() => { setShowForm(false); loadServices(); }}
         onCancel={() => setShowForm(false)}
       />
     );
   }
 
+  const totalPages = Math.ceil(services.length / ITEMS_PER_PAGE);
+  const paginatedServices = services.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-800">Servicios</h2>
-        <button
-          onClick={handleNew}
-          className="btn bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 flex items-center space-x-2"
-        >
-          <Plus className="h-5 w-5" />
-          <span>Nuevo Servicio</span>
+        <button onClick={handleNew} className="btn bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 flex items-center space-x-2">
+          <Plus className="h-5 w-5" /><span>Nuevo Servicio</span>
         </button>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         {services.length === 0 ? (
-          <p className="text-center py-8 text-gray-500">No hay servicios registrados.</p>
+          <EmptyState icon={Plus} title="No hay servicios registrados" description="Crea un nuevo servicio para comenzar" action={
+            <button onClick={handleNew} className="btn bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600">Nuevo Servicio</button>
+          } />
         ) : (
           <>
             <table className="w-full hidden md:table">
@@ -93,7 +99,7 @@ export default function ServicesList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {services.map((service) => (
+                {paginatedServices.map((service) => (
                   <tr key={service.id}>
                     <td className="px-6 py-4 text-gray-800">{service.nombre}</td>
                     <td className="px-6 py-4 text-gray-600">{service.duracion} min</td>
@@ -109,7 +115,7 @@ export default function ServicesList() {
               </tbody>
             </table>
             <div className="block md:hidden divide-y divide-gray-200">
-              {services.map((service) => (
+              {paginatedServices.map((service) => (
                 <div key={service.id} className="p-4 hover:bg-brand-50 transition-colors">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
@@ -128,27 +134,16 @@ export default function ServicesList() {
         )}
       </div>
 
-      {/* Modal de confirmación */}
+      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center modal-overlay-enter">
           <div className="bg-white w-full max-w-md rounded-t-2xl md:rounded-lg p-6 max-h-[90vh] overflow-y-auto modal-enter">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">¿Eliminar Servicio?</h3>
-            <p className="text-sm text-gray-600 mb-6">
-              Esta acción no se puede deshacer. ¿Deseas eliminar el servicio <strong>{serviceToDelete?.nombre}</strong>?
-            </p>
+            <p className="text-sm text-gray-600 mb-6">Esta acción no se puede deshacer. ¿Deseas eliminar el servicio <strong>{serviceToDelete?.nombre}</strong>?</p>
             <div className="flex justify-end gap-4">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleDeleteConfirmed}
-                className="btn px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-              >
-                Eliminar
-              </button>
+              <button onClick={() => setShowDeleteModal(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Cancelar</button>
+              <button onClick={handleDeleteConfirmed} className="btn px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Eliminar</button>
             </div>
           </div>
         </div>

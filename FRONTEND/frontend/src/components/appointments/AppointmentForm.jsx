@@ -29,10 +29,11 @@ export default function AppointmentForm({ appointment, onSave, onCancel }) {
   const [snacks, setSnacks] = useState([]);
   const [errors, setErrors] = useState({});
 
-  // Nuevos estados para el buscador de pacientes
   const [query, setQuery] = useState('');
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const isReadOnly = appointment?.estado === 'REAL' || appointment?.estado === 'CANC';
 
   useEffect(() => {
     loadData();
@@ -74,6 +75,7 @@ export default function AppointmentForm({ appointment, onSave, onCancel }) {
   };
 
   const handleSnackToggle = (snackId) => {
+    if (isReadOnly) return;
     const alreadySelected = formData.aperitivos.includes(snackId);
     const newSelection = alreadySelected
       ? formData.aperitivos.filter(id => id !== snackId)
@@ -95,6 +97,7 @@ export default function AppointmentForm({ appointment, onSave, onCancel }) {
   };
 
   const handleChange = (e) => {
+    if (isReadOnly) return;
     const { name, value } = e.target;
 
     if (name === 'servicio_id') {
@@ -114,6 +117,7 @@ export default function AppointmentForm({ appointment, onSave, onCancel }) {
   };
 
   const handlePatientSearch = (e) => {
+    if (isReadOnly) return;
     const value = e.target.value;
     setQuery(value);
     setShowSuggestions(true);
@@ -140,6 +144,7 @@ export default function AppointmentForm({ appointment, onSave, onCancel }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isReadOnly) return;
     if (!validateForm()) return;
 
     try {
@@ -157,31 +162,41 @@ export default function AppointmentForm({ appointment, onSave, onCancel }) {
       }
       if (onSave) onSave();
     } catch (err) {
-      toast.error("Error al guardar cita");
-      console.error('Error al guardar cita:', err);
-      console.error("Detalles del error:", err.response?.data || err.message);
+      const data = err.response?.data;
+      if (data && typeof data === 'object') {
+        const fieldErrors = {};
+        Object.entries(data).forEach(([field, msg]) => {
+          fieldErrors[field] = Array.isArray(msg) ? msg[0] : msg;
+        });
+        setErrors(prev => ({ ...prev, ...fieldErrors }));
+        toast.error("Corrige los errores marcados");
+      } else {
+        toast.error("Error al guardar cita");
+      }
+      console.error("Error al guardar cita:", err);
     }
   };
+
+  const todayStr = new Date().toISOString().split('T')[0];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
-        <button
-          onClick={onCancel}
-          className="btn-icon p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"
-        >
+        <button onClick={onCancel} className="btn-icon p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg">
           <ArrowLeft className="h-5 w-5" />
         </button>
         <h2 className="text-2xl font-bold text-gray-800">
-          {appointment ? 'Editar Cita' : 'Nueva Cita'}
+          {appointment ? (isReadOnly ? 'Ver Cita' : 'Editar Cita') : 'Nueva Cita'}
         </h2>
+        {isReadOnly && (
+          <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full font-medium">Solo lectura</span>
+        )}
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-            {/* Buscador de paciente */}
             <div className="relative">
               <label className="block mb-1 text-sm font-medium text-gray-700">Paciente</label>
               <input
@@ -190,7 +205,8 @@ export default function AppointmentForm({ appointment, onSave, onCancel }) {
                 value={query}
                 onChange={handlePatientSearch}
                 onFocus={() => setShowSuggestions(true)}
-                className={`w-full px-3 py-2 border rounded-lg ${errors.paciente_id ? 'border-red-500' : 'border-gray-300'}`}
+                readOnly={isReadOnly}
+                className={`w-full px-3 py-2 border rounded-lg ${errors.paciente_id ? 'border-red-500' : 'border-gray-300'} ${isReadOnly ? 'bg-gray-100' : ''}`}
               />
               {errors.paciente_id && <p className="text-sm text-red-600">{errors.paciente_id}</p>}
 
@@ -200,6 +216,7 @@ export default function AppointmentForm({ appointment, onSave, onCancel }) {
                     <li
                       key={p.id}
                       onClick={() => {
+                        if (isReadOnly) return;
                         setFormData({ ...formData, paciente_id: p.id });
                         setQuery(`${p.nombres} ${p.apellidos}`);
                         setShowSuggestions(false);
@@ -213,14 +230,14 @@ export default function AppointmentForm({ appointment, onSave, onCancel }) {
               )}
             </div>
 
-            {/* Colaborador */}
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">Colaborador</label>
               <select
                 name="colaborador_id"
                 value={formData.colaborador_id}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg ${errors.colaborador_id ? 'border-red-500' : 'border-gray-300'}`}
+                disabled={isReadOnly}
+                className={`w-full px-3 py-2 border rounded-lg ${errors.colaborador_id ? 'border-red-500' : 'border-gray-300'} ${isReadOnly ? 'bg-gray-100' : ''}`}
               >
                 <option value="">Selecciona un colaborador</option>
                 {workers.map((w) => (
@@ -232,14 +249,14 @@ export default function AppointmentForm({ appointment, onSave, onCancel }) {
               {errors.colaborador_id && <p className="text-sm text-red-600">{errors.colaborador_id}</p>}
             </div>
 
-            {/* Servicio */}
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">Servicio</label>
               <select
                 name="servicio_id"
                 value={formData.servicio_id}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg ${errors.servicio_id ? 'border-red-500' : 'border-gray-300'}`}
+                disabled={isReadOnly}
+                className={`w-full px-3 py-2 border rounded-lg ${errors.servicio_id ? 'border-red-500' : 'border-gray-300'} ${isReadOnly ? 'bg-gray-100' : ''}`}
               >
                 <option value="">Selecciona un servicio</option>
                 {services.map((s) => (
@@ -251,7 +268,6 @@ export default function AppointmentForm({ appointment, onSave, onCancel }) {
               {errors.servicio_id && <p className="text-sm text-red-600">{errors.servicio_id}</p>}
             </div>
 
-            {/* Aperitivos */}
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">Aperitivos</label>
               <div className="space-y-2">
@@ -261,6 +277,7 @@ export default function AppointmentForm({ appointment, onSave, onCancel }) {
                       type="checkbox"
                       checked={formData.aperitivos.includes(snack.id)}
                       onChange={() => handleSnackToggle(snack.id, snack.precio)}
+                      disabled={isReadOnly}
                       className="rounded border-gray-300"
                     />
                     <span>{snack.nombre} (${snack.precio})</span>
@@ -269,7 +286,6 @@ export default function AppointmentForm({ appointment, onSave, onCancel }) {
               </div>
             </div>
 
-            {/* Precio */}
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">Precio</label>
               <input
@@ -281,7 +297,6 @@ export default function AppointmentForm({ appointment, onSave, onCancel }) {
               />
             </div>
 
-            {/* Fecha */}
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">Fecha</label>
               <input
@@ -289,12 +304,13 @@ export default function AppointmentForm({ appointment, onSave, onCancel }) {
                 name="fecha_hora"
                 value={formData.fecha_hora}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg ${errors.fecha_hora ? 'border-red-500' : 'border-gray-300'}`}
+                min={appointment ? undefined : todayStr}
+                readOnly={isReadOnly}
+                className={`w-full px-3 py-2 border rounded-lg ${errors.fecha_hora ? 'border-red-500' : 'border-gray-300'} ${isReadOnly ? 'bg-gray-100' : ''}`}
               />
               {errors.fecha_hora && <p className="text-sm text-red-600">{errors.fecha_hora}</p>}
             </div>
 
-            {/* Hora */}
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">Hora</label>
               <input
@@ -302,40 +318,35 @@ export default function AppointmentForm({ appointment, onSave, onCancel }) {
                 name="hora"
                 value={formData.hora}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg ${errors.hora ? 'border-red-500' : 'border-gray-300'}`}
+                readOnly={isReadOnly}
+                className={`w-full px-3 py-2 border rounded-lg ${errors.hora ? 'border-red-500' : 'border-gray-300'} ${isReadOnly ? 'bg-gray-100' : ''}`}
               />
               {errors.hora && <p className="text-sm text-red-600">{errors.hora}</p>}
             </div>
           </div>
 
-          {/* Notas */}
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">Notas</label>
             <textarea
               name="notas"
               value={formData.notas}
               onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-lg border-gray-300"
+              readOnly={isReadOnly}
+              className={`w-full px-3 py-2 border rounded-lg border-gray-300 ${isReadOnly ? 'bg-gray-100' : ''}`}
               rows={3}
             />
           </div>
 
-          {/* Botones */}
           <div className="flex justify-end gap-4">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
-            >
+            <button type="button" onClick={onCancel} className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg">
               Cancelar
             </button>
-            <button
-              type="submit"
-              className="btn px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg flex items-center space-x-2"
-            >
-              <Save className="h-4 w-4" />
-              <span>Guardar</span>
-            </button>
+            {!isReadOnly && (
+              <button type="submit" className="btn px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg flex items-center space-x-2">
+                <Save className="h-4 w-4" />
+                <span>Guardar</span>
+              </button>
+            )}
           </div>
         </form>
       </div>

@@ -4,6 +4,8 @@ from django.db import models
 
 class Tratamiento(models.Model):
     nombre = models.CharField(max_length=100)
+    duracion = models.PositiveIntegerField(default=60, help_text="Duración en minutos")
+    descripcion = models.TextField(blank=True, default='')
 
     def __str__(self):
         return self.nombre
@@ -94,7 +96,7 @@ class Paciente(models.Model):
     #-------------------------------------------
     condiciones_medicas = models.TextField(blank=True, null=True)
     alergias = models.TextField(blank=True, null=True)
-    extras = models.TextField(blank=True, null=True)
+    extras = models.JSONField(blank=True, null=True, default=list)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

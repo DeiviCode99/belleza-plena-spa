@@ -75,8 +75,9 @@ export default function ServicesForm({ service, onSave, onCancel }) {
 
     const payload = {
       ...formData,
-      tratamientos: selectedTreatmentIds
+      tratamientos_ids: selectedTreatmentIds
     };
+    delete payload.tratamientos;
 
     try {
       if (service?.id) {
@@ -88,7 +89,17 @@ export default function ServicesForm({ service, onSave, onCancel }) {
       }
       if (onSave) onSave();
     } catch (error) {
-      toast.error("Error al guardar el servicio");
+      const data = error.response?.data;
+      if (data && typeof data === 'object') {
+        const fieldErrors = {};
+        Object.entries(data).forEach(([field, msg]) => {
+          fieldErrors[field] = Array.isArray(msg) ? msg[0] : msg;
+        });
+        setErrors(prev => ({ ...prev, ...fieldErrors }));
+        toast.error("Corrige los errores marcados");
+      } else {
+        toast.error("Error al guardar el servicio");
+      }
       console.error("Error al guardar el servicio:", error);
     }
   };
@@ -96,15 +107,10 @@ export default function ServicesForm({ service, onSave, onCancel }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
-        <button
-          onClick={onCancel}
-          className="btn-icon p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"
-        >
+        <button onClick={onCancel} className="btn-icon p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <h2 className="text-2xl font-bold text-gray-800">
-          {service ? "Editar Servicio" : "Nuevo Servicio"}
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-800">{service ? "Editar Servicio" : "Nuevo Servicio"}</h2>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -112,37 +118,22 @@ export default function ServicesForm({ service, onSave, onCancel }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Servicio *</label>
-              <input
-                type="text"
-                name="nombre"
-                value={formData.nombre}
-                onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg ${errors.nombre ? 'border-red-500' : 'border-gray-300'}`}
-              />
+              <input type="text" name="nombre" value={formData.nombre} onChange={handleChange}
+                className={`w-full px-3 py-2 border rounded-lg ${errors.nombre ? 'border-red-500' : 'border-gray-300'}`} />
               {errors.nombre && <p className="text-sm text-red-600">{errors.nombre}</p>}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Precio *</label>
-              <input
-                type="number"
-                name="precio"
-                value={formData.precio}
-                onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg ${errors.precio ? 'border-red-500' : 'border-gray-300'}`}
-              />
+              <input type="number" name="precio" value={formData.precio} onChange={handleChange} step="0.01"
+                className={`w-full px-3 py-2 border rounded-lg ${errors.precio ? 'border-red-500' : 'border-gray-300'}`} />
               {errors.precio && <p className="text-sm text-red-600">{errors.precio}</p>}
             </div>
 
-            {/* Duración */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Duración (minutos)</label>
-              <select
-                name="duracion"
-                value={formData.duracion}
-                onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg ${errors.duracion ? 'border-red-500' : 'border-gray-300'}`}
-              >
+              <select name="duracion" value={formData.duracion} onChange={handleChange}
+                className={`w-full px-3 py-2 border rounded-lg ${errors.duracion ? 'border-red-500' : 'border-gray-300'}`}>
                 <option value="">Seleccionar duración</option>
                 {[15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180].map((min) => (
                   <option key={min} value={min}>{min} minutos</option>
@@ -151,31 +142,17 @@ export default function ServicesForm({ service, onSave, onCancel }) {
               {errors.duracion && <p className="text-sm text-red-600">{errors.duracion}</p>}
             </div>
 
-            {/* Tratamientos */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Tratamientos</label>
-              <button
-                type="button"
-                onClick={() => setShowTreatmentSelector(true)}
-                className="mb-2 text-sm text-emerald-600 hover:underline"
-              >
+              <button type="button" onClick={() => setShowTreatmentSelector(true)} className="mb-2 text-sm text-emerald-600 hover:underline">
                 Ver lista de tratamientos
               </button>
-
-              {/* Tratamientos seleccionados */}
               {formData.tratamientos.length > 0 && (
                 <div className="space-y-2">
                   {formData.tratamientos.map((t) => (
-                    <div
-                      key={t.id}
-                      className="flex items-center justify-between bg-gray-100 p-2 rounded-lg"
-                    >
+                    <div key={t.id} className="flex items-center justify-between bg-gray-100 p-2 rounded-lg">
                       <span>{t.nombre}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeTreatment(t.id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
+                      <button type="button" onClick={() => removeTreatment(t.id)} className="text-red-500 hover:text-red-700">
                         <X className="w-4 h-4" />
                       </button>
                     </div>
@@ -185,7 +162,6 @@ export default function ServicesForm({ service, onSave, onCancel }) {
             </div>
           </div>
 
-          {/* Selector flotante */}
           {showTreatmentSelector && (
             <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center modal-overlay-enter">
               <div className="bg-white w-full max-w-md rounded-t-2xl md:rounded-lg p-6 max-h-[90vh] overflow-y-auto space-y-4 modal-enter">
@@ -193,49 +169,23 @@ export default function ServicesForm({ service, onSave, onCancel }) {
                 <div className="max-h-64 overflow-y-auto space-y-2">
                   {allTreatments.map((t) => (
                     <label key={t.id} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedTreatmentIds.includes(t.id)}
-                        onChange={() => toggleTreatment(t.id)}
-                      />
+                      <input type="checkbox" checked={selectedTreatmentIds.includes(t.id)} onChange={() => toggleTreatment(t.id)} />
                       <span>{t.nombre}</span>
                     </label>
                   ))}
                 </div>
                 <div className="flex justify-end space-x-2 pt-4 border-t border-gray-200">
-                  <button
-                    type="button"
-                    onClick={() => setShowTreatmentSelector(false)}
-                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={applyTreatments}
-                    className="btn px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg"
-                  >
-                    Aceptar
-                  </button>
+                  <button type="button" onClick={() => setShowTreatmentSelector(false)} className="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
+                  <button type="button" onClick={applyTreatments} className="btn px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg">Aceptar</button>
                 </div>
               </div>
             </div>
           )}
 
           <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="btn px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg flex items-center space-x-2"
-            >
-              <Save className="h-4 w-4" />
-              <span>Guardar</span>
+            <button type="button" onClick={onCancel} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Cancelar</button>
+            <button type="submit" className="btn px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg flex items-center space-x-2">
+              <Save className="h-4 w-4" /><span>Guardar</span>
             </button>
           </div>
         </form>

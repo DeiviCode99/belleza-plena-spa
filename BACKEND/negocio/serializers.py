@@ -1,5 +1,15 @@
 from rest_framework import serializers
+from django.core.validators import RegexValidator, MaxLengthValidator
 from .models import Paciente, Colaborador, Servicio, Tratamiento, Cita, HistoriaClinica, Aperitivo
+
+alpha_re = RegexValidator(
+    regex=r'^[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+$',
+    message='Solo se permiten letras y espacios'
+)
+digits_re = RegexValidator(
+    regex=r'^\d+$',
+    message='Solo se permiten números'
+)
 
 class TratamientoSerializer(serializers.ModelSerializer):
 
@@ -15,18 +25,60 @@ class AperitivoSerializer(serializers.ModelSerializer):
 
 class ServicioSerializer(serializers.ModelSerializer):
     tratamientos = TratamientoSerializer(many=True, read_only=True)
+    tratamientos_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        write_only=True,
+        queryset=Tratamiento.objects.all(),
+        source='tratamientos',
+    )
 
     class Meta:
         model = Servicio
         fields = '__all__'
 
 class PacienteSerializer(serializers.ModelSerializer):
-    
+    nombres = serializers.CharField(
+        validators=[alpha_re, MaxLengthValidator(100)]
+    )
+    apellidos = serializers.CharField(
+        validators=[alpha_re, MaxLengthValidator(100)]
+    )
+    celular = serializers.CharField(
+        validators=[digits_re, MaxLengthValidator(20)]
+    )
+    numero_documento = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True,
+        validators=[digits_re, MaxLengthValidator(10)]
+    )
+    emergencia_number = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True,
+        validators=[digits_re, MaxLengthValidator(10)]
+    )
+    fecha_nacimiento = serializers.DateField(required=False, allow_null=True)
+
     class Meta:
         model = Paciente
         fields = '__all__'
 
+    def validate_fecha_nacimiento(self, value):
+        if value and value > value.today():
+            raise serializers.ValidationError('La fecha de nacimiento no puede ser futura')
+        return value
+
 class ColaboradorSerializer(serializers.ModelSerializer):
+    nombres = serializers.CharField(
+        validators=[alpha_re, MaxLengthValidator(100)]
+    )
+    apellidos = serializers.CharField(
+        validators=[alpha_re, MaxLengthValidator(100)]
+    )
+    celular = serializers.CharField(
+        validators=[digits_re, MaxLengthValidator(20)]
+    )
+    numero_documento = serializers.CharField(
+        validators=[digits_re, MaxLengthValidator(10)]
+    )
+
     class Meta:
         model = Colaborador
         fields = '__all__'
@@ -76,7 +128,6 @@ class CitaSerializer(serializers.ModelSerializer):
 
         cita.aperitivos.set(aperitivos)
 
-        # Calcular el total: servicio + aperitivos
         total_aperitivos = sum([a.precio for a in aperitivos])
         cita.saldo_pend = servicio.precio + total_aperitivos
         cita.save()
@@ -84,6 +135,11 @@ class CitaSerializer(serializers.ModelSerializer):
         return cita
 
     def update(self, instance, validated_data):
+        if instance.estado in ('REAL', 'CANC'):
+            raise serializers.ValidationError(
+                {'estado': 'No se puede modificar una cita que ya fue realizada o cancelada'}
+            )
+
         if 'paciente_id' in validated_data:
             instance.paciente = validated_data.pop('paciente_id')
         if 'colaborador_id' in validated_data:
@@ -94,12 +150,11 @@ class CitaSerializer(serializers.ModelSerializer):
             aperitivos = validated_data.pop('aperitivos')
             instance.aperitivos.set(aperitivos)
         else:
-            aperitivos = instance.aperitivos.all()  # mantener los actuales si no llegan nuevos
+            aperitivos = instance.aperitivos.all()
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
-        # Recalcular saldo_pend si no fue enviado explícitamente
         if 'saldo_pend' not in validated_data:
             total = 0
             if instance.servicio:
