@@ -38,10 +38,22 @@ export default function ServicesForm({ service, onSave, onCancel }) {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
+  const validateNameField = (value, label) => {
+    const nameRe = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+$/;
+    const trimmed = value.trim();
+    if (!trimmed) return `${label} es requerido`;
+    if (!nameRe.test(trimmed)) return 'Solo se permiten letras y espacios';
+    if (trimmed.length < 3) return `${label} debe tener al menos 3 caracteres`;
+    const unique = new Set(trimmed.toLowerCase().replace(/\s/g, ''));
+    if (unique.size < 2) return `${label} no puede consistir solo de caracteres repetidos`;
+    return null;
+  };
+
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.nombre.trim()) newErrors.nombre = 'El nombre es requerido';
-    if (!formData.duracion) newErrors.duracion = 'La duración es requerida';
+    const nombreErr = validateNameField(formData.nombre, 'El nombre');
+    if (nombreErr) newErrors.nombre = nombreErr;
+    if (selectedTreatmentIds.length === 0) newErrors.tratamientos = 'Selecciona al menos un tratamiento';
     if (!formData.precio) newErrors.precio = 'El precio es requerido';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -53,19 +65,28 @@ export default function ServicesForm({ service, onSave, onCancel }) {
     );
   };
 
+  const calcTotalDuration = (ids) => {
+    return allTreatments.filter(t => ids.includes(t.id)).reduce((sum, t) => sum + (t.duracion || 0), 0);
+  };
+
   const applyTreatments = () => {
+    const totalDuracion = calcTotalDuration(selectedTreatmentIds);
     setFormData(prev => ({
       ...prev,
-      tratamientos: allTreatments.filter(t => selectedTreatmentIds.includes(t.id))
+      tratamientos: allTreatments.filter(t => selectedTreatmentIds.includes(t.id)),
+      duracion: totalDuracion || prev.duracion
     }));
     setShowTreatmentSelector(false);
   };
 
   const removeTreatment = (id) => {
-    setSelectedTreatmentIds((prev) => prev.filter(t => t !== id));
+    const newIds = selectedTreatmentIds.filter(t => t !== id);
+    setSelectedTreatmentIds(newIds);
+    const totalDuracion = calcTotalDuration(newIds);
     setFormData(prev => ({
       ...prev,
-      tratamientos: prev.tratamientos.filter(t => t.id !== id)
+      tratamientos: prev.tratamientos.filter(t => t.id !== id),
+      duracion: totalDuracion || ''
     }));
   };
 
@@ -132,18 +153,14 @@ export default function ServicesForm({ service, onSave, onCancel }) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Duración (minutos)</label>
-              <select name="duracion" value={formData.duracion} onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg ${errors.duracion ? 'border-red-500' : 'border-gray-300'}`}>
-                <option value="">Seleccionar duración</option>
-                {[15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180].map((min) => (
-                  <option key={min} value={min}>{min} minutos</option>
-                ))}
-              </select>
-              {errors.duracion && <p className="text-sm text-red-600">{errors.duracion}</p>}
+              <input type="number" name="duracion" value={formData.duracion} readOnly
+                className="w-full px-3 py-2 border rounded-lg bg-gray-100 border-gray-300" />
+              <p className="text-xs text-gray-500 mt-1">Calculada automáticamente de los tratamientos seleccionados</p>
             </div>
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Tratamientos</label>
+              {errors.tratamientos && <p className="text-sm text-red-600 mb-1">{errors.tratamientos}</p>}
               <button type="button" onClick={() => setShowTreatmentSelector(true)} className="mb-2 text-sm text-emerald-600 hover:underline">
                 Ver lista de tratamientos
               </button>

@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from django.core.validators import RegexValidator, MaxLengthValidator
+from django.core.validators import RegexValidator, MaxLengthValidator, MinLengthValidator
+from django.utils import timezone
+from datetime import date
 from .models import Paciente, Colaborador, Servicio, Tratamiento, Cita, HistoriaClinica, Aperitivo
 
 alpha_re = RegexValidator(
@@ -11,17 +13,33 @@ digits_re = RegexValidator(
     message='Solo se permiten números'
 )
 
+
+def validate_meaningful_name(value):
+    stripped = value.strip()
+    if len(stripped) < 3:
+        raise serializers.ValidationError('Debe tener al menos 3 caracteres')
+    unique_chars = set(stripped.lower().replace(' ', ''))
+    if len(unique_chars) < 2:
+        raise serializers.ValidationError('El nombre no puede consistir solo de caracteres repetidos')
+    return value
+
+
 class TratamientoSerializer(serializers.ModelSerializer):
+    nombre = serializers.CharField(
+        validators=[alpha_re, MinLengthValidator(3), validate_meaningful_name]
+    )
 
     class Meta:
         model = Tratamiento
         fields = '__all__'
+
 
 class AperitivoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Aperitivo
         fields = '__all__'
+
 
 class ServicioSerializer(serializers.ModelSerializer):
     tratamientos = TratamientoSerializer(many=True, read_only=True)
@@ -31,17 +49,40 @@ class ServicioSerializer(serializers.ModelSerializer):
         queryset=Tratamiento.objects.all(),
         source='tratamientos',
     )
+    nombre = serializers.CharField(
+        validators=[alpha_re, MinLengthValidator(3), validate_meaningful_name]
+    )
 
     class Meta:
         model = Servicio
         fields = '__all__'
 
+    def create(self, validated_data):
+        tratamientos = validated_data.pop('tratamientos', [])
+        instance = Servicio.objects.create(**validated_data)
+        if tratamientos:
+            instance.tratamientos.set(tratamientos)
+            instance.duracion = sum(t.duracion for t in tratamientos)
+            instance.save()
+        return instance
+
+    def update(self, instance, validated_data):
+        tratamientos = validated_data.pop('tratamientos', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        if tratamientos is not None:
+            instance.tratamientos.set(tratamientos)
+            instance.duracion = sum(t.duracion for t in tratamientos)
+        instance.save()
+        return instance
+
+
 class PacienteSerializer(serializers.ModelSerializer):
     nombres = serializers.CharField(
-        validators=[alpha_re, MaxLengthValidator(100)]
+        validators=[alpha_re, MinLengthValidator(3), validate_meaningful_name]
     )
     apellidos = serializers.CharField(
-        validators=[alpha_re, MaxLengthValidator(100)]
+        validators=[alpha_re, MinLengthValidator(3), validate_meaningful_name]
     )
     celular = serializers.CharField(
         validators=[digits_re, MaxLengthValidator(20)]
@@ -61,16 +102,24 @@ class PacienteSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate_fecha_nacimiento(self, value):
-        if value and value > value.today():
+        if value is None:
+            return value
+        if value > date.today():
             raise serializers.ValidationError('La fecha de nacimiento no puede ser futura')
+        age = date.today().year - value.year - (
+            (date.today().month, date.today().day) < (value.month, value.day)
+        )
+        if age < 15:
+            raise serializers.ValidationError('El paciente debe tener al menos 15 años')
         return value
+
 
 class ColaboradorSerializer(serializers.ModelSerializer):
     nombres = serializers.CharField(
-        validators=[alpha_re, MaxLengthValidator(100)]
+        validators=[alpha_re, MinLengthValidator(3), validate_meaningful_name]
     )
     apellidos = serializers.CharField(
-        validators=[alpha_re, MaxLengthValidator(100)]
+        validators=[alpha_re, MinLengthValidator(3), validate_meaningful_name]
     )
     celular = serializers.CharField(
         validators=[digits_re, MaxLengthValidator(20)]
@@ -82,6 +131,7 @@ class ColaboradorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Colaborador
         fields = '__all__'
+
 
 class CitaSerializer(serializers.ModelSerializer):
     paciente = PacienteSerializer(read_only=True)
@@ -112,6 +162,14 @@ class CitaSerializer(serializers.ModelSerializer):
             'notas', 'estado', 'saldo_pend',
             'created_at'
         ]
+
+    def validate(self, attrs):
+        fecha_hora = attrs.get('fecha_hora')
+        if fecha_hora and fecha_hora < date.today():
+            raise serializers.ValidationError(
+                {'fecha_hora': 'No se puede crear una cita en una fecha pasada'}
+            )
+        return attrs
 
     def create(self, validated_data):
         paciente = validated_data.pop('paciente_id')
@@ -164,6 +222,7 @@ class CitaSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
 
 class HistoriaClinicaSerializer(serializers.ModelSerializer):
     cita = CitaSerializer(read_only=True)

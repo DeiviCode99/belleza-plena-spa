@@ -27,9 +27,21 @@ export default function TreatmentsForm({ treatment, onSave, onCancel }) {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
+  const validateNameField = (value, label) => {
+    const nameRe = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+$/;
+    const trimmed = value.trim();
+    if (!trimmed) return `${label} es requerido`;
+    if (!nameRe.test(trimmed)) return 'Solo se permiten letras y espacios';
+    if (trimmed.length < 3) return `${label} debe tener al menos 3 caracteres`;
+    const unique = new Set(trimmed.toLowerCase().replace(/\s/g, ''));
+    if (unique.size < 2) return `${label} no puede consistir solo de caracteres repetidos`;
+    return null;
+  };
+
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.nombre.trim()) newErrors.nombre = 'El nombre es requerido';
+    const nombreErr = validateNameField(formData.nombre, 'El nombre');
+    if (nombreErr) newErrors.nombre = nombreErr;
     if (!formData.duracion) newErrors.duracion = 'La duración es requerida';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;

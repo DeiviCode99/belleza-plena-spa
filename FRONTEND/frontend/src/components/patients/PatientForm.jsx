@@ -72,11 +72,21 @@ export default function PatientForm({ patient, onSave, onCancel }) {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.nombres.trim()) newErrors.nombres = 'El nombre es requerido';
-    else if (!NAME_RE.test(formData.nombres.trim())) newErrors.nombres = 'Solo se permiten letras y espacios';
+    const validateName = (value, label) => {
+      const trimmed = value.trim();
+      if (!trimmed) return `${label} es requerido`;
+      if (!NAME_RE.test(trimmed)) return 'Solo se permiten letras y espacios';
+      if (trimmed.length < 3) return `${label} debe tener al menos 3 caracteres`;
+      const unique = new Set(trimmed.toLowerCase().replace(/\s/g, ''));
+      if (unique.size < 2) return `${label} no puede consistir solo de caracteres repetidos`;
+      return null;
+    };
 
-    if (!formData.apellidos.trim()) newErrors.apellidos = 'El apellido es requerido';
-    else if (!NAME_RE.test(formData.apellidos.trim())) newErrors.apellidos = 'Solo se permiten letras y espacios';
+    const nombresErr = validateName(formData.nombres, 'El nombre');
+    if (nombresErr) newErrors.nombres = nombresErr;
+
+    const apellidosErr = validateName(formData.apellidos, 'El apellido');
+    if (apellidosErr) newErrors.apellidos = apellidosErr;
 
     if (!formData.celular.trim()) newErrors.celular = 'El celular es requerido';
     else if (!DIGITS_ONLY.test(formData.celular)) newErrors.celular = 'Solo se permiten números';
@@ -92,8 +102,17 @@ export default function PatientForm({ patient, onSave, onCancel }) {
       newErrors.emergencia_number = 'Solo se permiten números';
     }
 
-    if (formData.fecha_nacimiento && formData.fecha_nacimiento > new Date().toISOString().split('T')[0]) {
-      newErrors.fecha_nacimiento = 'La fecha no puede ser futura';
+    if (formData.fecha_nacimiento) {
+      const birthDate = new Date(formData.fecha_nacimiento);
+      const today = new Date();
+      if (birthDate > today) {
+        newErrors.fecha_nacimiento = 'La fecha no puede ser futura';
+      } else {
+        const minAgeDate = new Date(today.getFullYear() - 15, today.getMonth(), today.getDate());
+        if (birthDate > minAgeDate) {
+          newErrors.fecha_nacimiento = 'El paciente debe tener al menos 15 años';
+        }
+      }
     }
 
     setErrors(newErrors);
@@ -169,6 +188,7 @@ export default function PatientForm({ patient, onSave, onCancel }) {
   };
 
   const todayStr = new Date().toISOString().split('T')[0];
+  const maxBirthStr = new Date(new Date().getFullYear() - 15, new Date().getMonth(), new Date().getDate()).toISOString().split('T')[0];
 
   return (
     <div className="space-y-6">
@@ -251,7 +271,7 @@ export default function PatientForm({ patient, onSave, onCancel }) {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Nacimiento</label>
                 <input
                   type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleChange}
-                  max={todayStr}
+                  max={maxBirthStr}
                   className={`w-full px-3 py-2 border rounded-lg ${errors.fecha_nacimiento ? 'border-red-500' : 'border-gray-300'}`}
                 />
                 {errors.fecha_nacimiento && <p className="text-sm text-red-600 mt-1">{errors.fecha_nacimiento}</p>}
