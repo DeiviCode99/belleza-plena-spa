@@ -6,6 +6,7 @@ class Tratamiento(models.Model):
     nombre = models.CharField(max_length=100)
     duracion = models.PositiveIntegerField(default=60, help_text="Duración en minutos")
     descripcion = models.TextField(blank=True, default='')
+    activo = models.BooleanField(default=True)
 
     def __str__(self):
         return self.nombre
@@ -36,6 +37,7 @@ class Colaborador(models.Model):
     )
     numero_documento = models.CharField(max_length=10, unique=True)
     celular = models.CharField(max_length=20)
+    activo = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -48,6 +50,7 @@ class Servicio(models.Model):
     duracion = models.PositiveIntegerField(default=60, help_text="Duración en minutos")
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     tratamientos = models.ManyToManyField(Tratamiento, blank=True)
+    activo = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -97,6 +100,7 @@ class Paciente(models.Model):
     condiciones_medicas = models.TextField(blank=True, null=True)
     alergias = models.TextField(blank=True, null=True)
     extras = models.JSONField(blank=True, null=True, default=list)
+    activo = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

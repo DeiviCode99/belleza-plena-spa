@@ -36,6 +36,7 @@ Thumbs.db
 *.sql
 
 # Static files (collectstatic output)
+.opencode
 staticfiles/
 
 # Generated graph outputs

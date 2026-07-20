@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, Plus, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
-import { getAppointments, updateAppointment, deleteAppointment, getAppointmentStatuses } from '../../lib/api';
+import { Calendar, Clock, Plus, Edit, CheckCircle, XCircle } from 'lucide-react';
+import { getAppointments, updateAppointment, getAppointmentStatuses } from '../../lib/api';
 import AppointmentForm from './AppointmentForm';
 import Skeleton from '../ui/Skeleton';
 import Pagination from '../ui/Pagination';
@@ -24,8 +24,6 @@ export default function AppointmentList() {
   const [showForm, setShowForm] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [appointmentToDelete, setAppointmentToDelete] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -81,24 +79,6 @@ export default function AppointmentList() {
     setSelectedAppointment(null);
   };
 
-  const confirmDeleteAppointment = (appointment) => {
-    setAppointmentToDelete(appointment);
-    setShowDeleteModal(true);
-  };
-
-  const handleDeleteConfirmed = async () => {
-    try {
-      await deleteAppointment(appointmentToDelete.id);
-      toast.success("Cita eliminada correctamente");
-      setShowDeleteModal(false);
-      setAppointmentToDelete(null);
-      await loadAppointments();
-    } catch (error) {
-      toast.error("Error al eliminar la cita");
-      console.error("Error al eliminar cita:", error);
-    }
-  };
-
   const handleStatusChange = async (appointment, newStatus) => {
     try {
       await updateAppointment(appointment.id, {
@@ -121,6 +101,10 @@ export default function AppointmentList() {
   };
 
   const handleEditAppointment = (appointment) => {
+    if (appointment.estado === 'REAL') {
+      toast.info("No se puede editar una cita realizada");
+      return;
+    }
     if (appointment.estado === 'CANC') {
       toast.info("No se puede editar una cita cancelada");
       return;
@@ -208,11 +192,12 @@ export default function AppointmentList() {
                       </button>
                     </>
                   )}
-                  <button onClick={() => handleEditAppointment(appt)} className="btn-icon" title="Editar">
-                    <Edit className={`${appt.estado === 'CANC' ? 'text-gray-400 cursor-not-allowed' : 'text-emerald-600 hover:text-emerald-800'}`} />
-                  </button>
-                  <button onClick={() => confirmDeleteAppointment(appt)} className="btn-icon" title="Eliminar">
-                    <Trash2 className="text-red-600 hover:text-red-800" />
+                  <button
+                    onClick={() => handleEditAppointment(appt)}
+                    className="btn-icon"
+                    title={appt.estado === 'PEND' ? 'Editar' : 'No editable'}
+                  >
+                    <Edit className={`${appt.estado === 'PEND' ? 'text-emerald-600 hover:text-emerald-800' : 'text-gray-400 cursor-not-allowed'}`} />
                   </button>
                 </div>
               </div>
@@ -220,21 +205,6 @@ export default function AppointmentList() {
           </div>
           <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </>
-      )}
-
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center modal-overlay-enter">
-          <div className="bg-white w-full max-w-md rounded-t-2xl md:rounded-lg p-6 max-h-[90vh] overflow-y-auto modal-enter">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">¿Eliminar Cita?</h3>
-            <p className="text-sm text-gray-600 mb-6">
-              Esta acción no se puede deshacer. ¿Deseas eliminar la cita del paciente <strong>{appointmentToDelete?.paciente?.nombres}</strong>?
-            </p>
-            <div className="flex justify-end gap-4">
-              <button onClick={() => setShowDeleteModal(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Cancelar</button>
-              <button onClick={handleDeleteConfirmed} className="btn px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Eliminar</button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );
