@@ -1,6 +1,13 @@
 const CACHE = 'belleza-plena-v1';
+const PRECACHE_MANIFEST = self.__WB_MANIFEST || [];
 
 self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE).then((cache) => {
+      const urls = PRECACHE_MANIFEST.map((e) => e.url);
+      return cache.addAll(urls);
+    })
+  );
   self.skipWaiting();
 });
 
@@ -44,3 +51,5 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
+
+self.__WB_MANIFEST;
