@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Eye, Users, RotateCcw, Filter } from 'lucide-react';
+import { Search, Plus, Edit, Ban, Eye, Users, RotateCcw, Filter } from 'lucide-react';
 import { getPatients, deletePatient, restorePatient } from '../../lib/api';
 import PatientForm from './PatientForm';
 import PatientView from './PatientView';
@@ -207,7 +207,7 @@ export default function PatientList() {
                         <button onClick={() => handleViewPatient(patient)} className="btn-icon text-blue-600 hover:text-blue-900 p-2 rounded hover:bg-blue-50" title="Ver detalles"><Eye className="h-4 w-4" /></button>
                         <button onClick={() => handleEditPatient(patient)} className="btn-icon text-emerald-600 hover:text-emerald-900 p-2 rounded hover:bg-emerald-50" title="Editar"><Edit className="h-4 w-4" /></button>
                         {patient.activo ? (
-                          <button onClick={() => confirmDeletePatient(patient)} className="btn-icon text-red-600 hover:text-red-900 p-2 rounded hover:bg-red-50" title="Deshabilitar"><Trash2 className="h-4 w-4" /></button>
+                          <button onClick={() => confirmDeletePatient(patient)} className="btn-icon text-red-600 hover:text-red-900 p-2 rounded hover:bg-red-50" title="Deshabilitar"><Ban className="h-4 w-4" /></button>
                         ) : (
                           <button onClick={() => handleRestorePatient(patient)} className="btn-icon text-emerald-600 hover:text-emerald-900 p-2 rounded hover:bg-emerald-50" title="Reactivar"><RotateCcw className="h-4 w-4" /></button>
                         )}
@@ -246,7 +246,7 @@ export default function PatientList() {
                     <button onClick={() => handleViewPatient(patient)} className="btn-icon p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Ver"><Eye className="h-4 w-4" /></button>
                     <button onClick={() => handleEditPatient(patient)} className="btn-icon p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Editar"><Edit className="h-4 w-4" /></button>
                     {patient.activo ? (
-                      <button onClick={() => confirmDeletePatient(patient)} className="btn-icon p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Deshabilitar"><Trash2 className="h-4 w-4" /></button>
+                      <button onClick={() => confirmDeletePatient(patient)} className="btn-icon p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Deshabilitar"><Ban className="h-4 w-4" /></button>
                     ) : (
                       <button onClick={() => handleRestorePatient(patient)} className="btn-icon p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Reactivar"><RotateCcw className="h-4 w-4" /></button>
                     )}

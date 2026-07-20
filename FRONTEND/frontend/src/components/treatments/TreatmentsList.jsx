@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Edit, Trash2, RotateCcw, Filter } from 'lucide-react';
+import { Plus, Edit, Ban, RotateCcw, Filter } from 'lucide-react';
 import { getTreatments, createTreatment, updateTreatment, deleteTreatment, restoreTreatment } from '../../lib/api';
 import TreatmentsForm from './TreatmentsForm';
 import Skeleton from '../ui/Skeleton';
@@ -156,7 +156,7 @@ export default function TreatmentsList() {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                     <button onClick={() => handleEdit(treatment)} className="btn-icon text-emerald-600 hover:text-emerald-900 p-2"><Edit className="h-5 w-5" /></button>
                     {treatment.activo ? (
-                      <button onClick={() => confirmDeleteTreatment(treatment)} className="btn-icon text-red-600 hover:text-red-900 p-2"><Trash2 className="h-5 w-5" /></button>
+                      <button onClick={() => confirmDeleteTreatment(treatment)} className="btn-icon text-red-600 hover:text-red-900 p-2"><Ban className="h-5 w-5" /></button>
                     ) : (
                       <button onClick={() => handleRestore(treatment)} className="btn-icon text-emerald-600 hover:text-emerald-900 p-2"><RotateCcw className="h-5 w-5" /></button>
                     )}
@@ -180,7 +180,7 @@ export default function TreatmentsList() {
                   <div className="flex items-center gap-1 shrink-0">
                     <button onClick={() => handleEdit(treatment)} className="btn-icon p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Editar"><Edit className="h-5 w-5" /></button>
                     {treatment.activo ? (
-                      <button onClick={() => confirmDeleteTreatment(treatment)} className="btn-icon p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Deshabilitar"><Trash2 className="h-5 w-5" /></button>
+                      <button onClick={() => confirmDeleteTreatment(treatment)} className="btn-icon p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Deshabilitar"><Ban className="h-5 w-5" /></button>
                     ) : (
                       <button onClick={() => handleRestore(treatment)} className="btn-icon p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Reactivar"><RotateCcw className="h-5 w-5" /></button>
                     )}

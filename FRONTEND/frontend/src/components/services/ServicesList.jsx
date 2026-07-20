@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Plus, Edit, Trash2, RotateCcw, Filter } from "lucide-react";
+import { Plus, Edit, Ban, RotateCcw, Filter } from "lucide-react";
 import { getServices, deleteService, restoreService } from "../../lib/api";
 import ServicesForm from "./ServicesForm";
 import Pagination from "../ui/Pagination";
@@ -132,7 +132,7 @@ export default function ServicesList() {
                       <div className="flex justify-end space-x-2">
                         <button onClick={() => handleEdit(service)} className="btn-icon text-emerald-600 hover:text-emerald-800 p-2 rounded hover:bg-emerald-50"><Edit className="h-5 w-5" /></button>
                         {service.activo ? (
-                          <button onClick={() => confirmDelete(service)} className="btn-icon text-red-600 hover:text-red-800 p-2 rounded hover:bg-red-50"><Trash2 className="h-5 w-5" /></button>
+                          <button onClick={() => confirmDelete(service)} className="btn-icon text-red-600 hover:text-red-800 p-2 rounded hover:bg-red-50"><Ban className="h-5 w-5" /></button>
                         ) : (
                           <button onClick={() => handleRestore(service)} className="btn-icon text-emerald-600 hover:text-emerald-800 p-2 rounded hover:bg-emerald-50"><RotateCcw className="h-5 w-5" /></button>
                         )}
@@ -156,7 +156,7 @@ export default function ServicesList() {
                     <div className="flex items-center gap-1 shrink-0">
                       <button onClick={() => handleEdit(service)} className="btn-icon p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Editar"><Edit className="h-5 w-5" /></button>
                       {service.activo ? (
-                        <button onClick={() => confirmDelete(service)} className="btn-icon p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Deshabilitar"><Trash2 className="h-5 w-5" /></button>
+                        <button onClick={() => confirmDelete(service)} className="btn-icon p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Deshabilitar"><Ban className="h-5 w-5" /></button>
                       ) : (
                         <button onClick={() => handleRestore(service)} className="btn-icon p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Reactivar"><RotateCcw className="h-5 w-5" /></button>
                       )}
