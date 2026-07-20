@@ -24,4 +24,7 @@ urlpatterns = [
     path('reportes/meses/', report_months, name='report-months'),
     path('reportes/meses/<str:mes>/', report_month_detail, name='report-month-detail'),
     path('reportes/meses/<str:mes>/pdf/', report_pdf, name='report-pdf'),
+    path('push/subscribe/', push_subscribe, name='push-subscribe'),
+    path('push/unsubscribe/', push_unsubscribe, name='push-unsubscribe'),
+    path('push/public-key/', push_public_key, name='push-public-key'),
 ]

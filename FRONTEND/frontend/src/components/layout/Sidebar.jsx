@@ -39,7 +39,7 @@ export default function Sidebar({ isOpen, onClose }) {
       >
         <div className="flex items-center justify-between p-6 border-b border-emerald-100">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="Logo" className="h-8" />
+            <img src={logo} alt="Logo" className="h-12 bg-white rounded-xl p-1.5 shadow-sm ring-1 ring-emerald-200" />
           </div>
           <button
             onClick={onClose}

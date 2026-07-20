@@ -24,20 +24,12 @@ export default defineConfig({
           { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: {
+      strategies: 'injectManifest',
+      srcDir: 'public',
+      filename: 'sw.js',
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/vaiufiezjucivetdotvi\.supabase\.co\/auth\/.*/i,
-            handler: 'NetworkFirst',
-            options: { cacheName: 'supabase-auth', expiration: { maxEntries: 50, maxAgeSeconds: 86400 } },
-          },
-          {
-            urlPattern: /^https?:\/\/[^\/]+\/api\/.*/i,
-            handler: 'NetworkFirst',
-            options: { cacheName: 'django-api', expiration: { maxEntries: 100, maxAgeSeconds: 300 } },
-          },
-        ],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },
     }),
   ],

@@ -153,6 +153,11 @@ SUPABASE_PROJECT_REF = env('SUPABASE_PROJECT_REF')
 SUPABASE_ANON_KEY = env('SUPABASE_ANON_KEY')
 SUPABASE_SERVICE_ROLE = env('SUPABASE_SERVICE_ROLE')
 
+# Web Push (VAPID)
+VAPID_PRIVATE_KEY = env('VAPID_PRIVATE_KEY').replace('\\n', '\n')
+VAPID_PUBLIC_KEY = env('VAPID_PUBLIC_KEY')
+VAPID_CLAIMS = {'sub': 'mailto:admin@bellezaplena.com'}
+
 from datetime import timedelta
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),

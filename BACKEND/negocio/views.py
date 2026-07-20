@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import viewsets, status
 from rest_framework.permissions import AllowAny
 from django.contrib.auth.models import User
+from django.conf import settings
 from .models import *
 from .serializers import *
 from .throttles import RegisterAnonThrottle
@@ -39,7 +40,7 @@ class TratamientoViewSet(SoftDeleteViewSet):
     serializer_class = TratamientoSerializer
 
 
-class AperitivoViewSet(viewsets.ModelViewSet):
+class AperitivoViewSet(SoftDeleteViewSet):
     queryset = Aperitivo.objects.all()
     serializer_class = AperitivoSerializer
 
@@ -52,6 +53,13 @@ class ServicioViewSet(SoftDeleteViewSet):
 class CitaViewSet(viewsets.ModelViewSet):
     queryset = Cita.objects.all().order_by('-fecha_hora')
     serializer_class = CitaSerializer
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        fecha = self.request.query_params.get('fecha')
+        if fecha:
+            qs = qs.filter(fecha_hora=fecha)
+        return qs
 
     def destroy(self, request, *args, **kwargs):
         return Response(
@@ -141,3 +149,36 @@ def register(request):
         return Response({'error': 'username already exists'}, status=status.HTTP_400_BAD_REQUEST)
     user = User.objects.create_user(username=username, password=password, email=email)
     return Response({'id': user.id, 'username': user.username})
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def push_subscribe(request):
+    serializer = PushSubscriptionSerializer(data=request.data)
+    if serializer.is_valid():
+        endpoint = serializer.validated_data['endpoint']
+        obj, created = PushSubscription.objects.update_or_create(
+            endpoint=endpoint,
+            defaults={
+                'auth_key': serializer.validated_data['auth_key'],
+                'p256dh_key': serializer.validated_data['p256dh_key'],
+            }
+        )
+        return Response({'id': obj.id, 'created': created}, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def push_unsubscribe(request):
+    endpoint = request.data.get('endpoint')
+    if not endpoint:
+        return Response({'error': 'endpoint required'}, status=status.HTTP_400_BAD_REQUEST)
+    deleted, _ = PushSubscription.objects.filter(endpoint=endpoint).delete()
+    return Response({'deleted': deleted}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def push_public_key(request):
+    return Response({'publicKey': settings.VAPID_PUBLIC_KEY})

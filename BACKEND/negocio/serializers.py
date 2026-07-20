@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.core.validators import RegexValidator, MaxLengthValidator, MinLengthValidator
 from django.utils import timezone
 from datetime import date
-from .models import Paciente, Colaborador, Servicio, Tratamiento, Cita, HistoriaClinica, Aperitivo
+from .models import Paciente, Colaborador, Servicio, Tratamiento, Cita, HistoriaClinica, Aperitivo, PushSubscription
 
 alpha_re = RegexValidator(
     regex=r'^[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+$',
@@ -230,3 +230,14 @@ class HistoriaClinicaSerializer(serializers.ModelSerializer):
     class Meta:
         model = HistoriaClinica
         fields = '__all__'
+
+
+class PushSubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PushSubscription
+        fields = ['id', 'endpoint', 'auth_key', 'p256dh_key']
+        extra_kwargs = {
+            'endpoint': {'required': True},
+            'auth_key': {'required': True},
+            'p256dh_key': {'required': True},
+        }
