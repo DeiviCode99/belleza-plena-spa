@@ -11,6 +11,7 @@ const STATUS_COLORS = {
   PEND: 'bg-yellow-100 text-yellow-800',
   REAL: 'bg-emerald-100 text-emerald-800',
   CANC: 'bg-red-100 text-red-800',
+  RETR: 'bg-orange-100 text-orange-800',
 };
 
 const ITEMS_PER_PAGE = 10;
@@ -113,6 +114,27 @@ export default function AppointmentList() {
     setShowForm(true);
   };
 
+  const handleMarkAsRealizada = async (appointment) => {
+    try {
+      await updateAppointment(appointment.id, {
+        paciente_id: appointment.paciente?.id,
+        colaborador_id: appointment.colaborador?.id,
+        servicio_id: appointment.servicio?.id,
+        aperitivos: appointment.aperitivos?.map(s => s.id) || [],
+        fecha_hora: appointment.fecha_hora,
+        hora: appointment.hora,
+        estado: 'REAL',
+        notas: appointment.notas,
+        saldo_pend: appointment.saldo_pend
+      });
+      toast.success("Cita marcada como realizada");
+      await loadAppointments();
+    } catch (error) {
+      toast.error("Error al actualizar estado");
+      console.error('Error actualizando estado:', error);
+    }
+  };
+
   const handleNewAppointment = () => {
     setSelectedAppointment(null);
     setShowForm(true);
@@ -182,7 +204,7 @@ export default function AppointmentList() {
                   <span className={`text-xs font-medium px-3 py-1 rounded-full ${STATUS_COLORS[appt.estado] || 'bg-gray-100 text-gray-800'}`}>
                     {appointmentStatuses.find(s => s.value === appt.estado)?.label || appt.estado}
                   </span>
-                  {appt.estado === 'PEND' && (
+                  {(appt.estado === 'PEND' || appt.estado === 'RETR') && (
                     <>
                       <button onClick={() => handleStatusChange(appt, 'REAL')} className="btn-icon" title="Marcar como realizada">
                         <CheckCircle className="text-green-600 hover:text-green-800" />
@@ -195,9 +217,9 @@ export default function AppointmentList() {
                   <button
                     onClick={() => handleEditAppointment(appt)}
                     className="btn-icon"
-                    title={appt.estado === 'PEND' ? 'Editar' : 'No editable'}
+                    title={appt.estado === 'PEND' || appt.estado === 'RETR' ? 'Editar' : 'No editable'}
                   >
-                    <Edit className={`${appt.estado === 'PEND' ? 'text-emerald-600 hover:text-emerald-800' : 'text-gray-400 cursor-not-allowed'}`} />
+                    <Edit className={`${appt.estado === 'PEND' || appt.estado === 'RETR' ? 'text-emerald-600 hover:text-emerald-800' : 'text-gray-400 cursor-not-allowed'}`} />
                   </button>
                 </div>
               </div>

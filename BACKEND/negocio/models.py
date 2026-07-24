@@ -114,6 +114,7 @@ class Cita(models.Model):
         ('PEND', 'Pendiente'),
         ('REAL', 'Realizada'),
         ('CANC', 'Cancelada'),
+        ('RETR', 'Atrasada'),
     ]
 
     paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)

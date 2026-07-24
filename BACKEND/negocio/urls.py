@@ -19,6 +19,7 @@ urlpatterns = [
     path('estados-cita/', appointment_statuses, name='estados-cita'),
     path('etiquetas-pac/', LabelPatient.as_view(), name='etiquetas-pac'),
     path('historias-clinicas/', HistoriasPorPaciente.as_view(), name='historias-clinicas'),
+    path('historias/paciente/<int:paciente_id>/pdf/', historia_clinica_pdf, name='historia-clinica-pdf'),
     path('register/', register, name='register'),
     path('reportes/', report_list, name='report-list'),
     path('reportes/meses/', report_months, name='report-months'),

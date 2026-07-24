@@ -14,12 +14,10 @@ export const createAppointment = (data) => api.post('citas/', data);
 export const updateAppointment = (id, data) => api.put(`citas/${id}/`, data);
 
 // ---------------------- HISTORIAS CLÍNICAS ----------------------
-export async function getMedicalRecords() {
-  const response = await axios.get('/api/historias-clinicas/');
-  return response.data;
-}
-export const updateMedicalRecord = (id, data) =>
-  axios.put(`/api/historias/${id}/`, data).then(res => res.data);
+export const getMedicalRecords = () => api.get('historias-clinicas/').then(res => res.data);
+export const updateMedicalRecord = (id, data) => api.put(`historias/${id}/`, data).then(res => res.data);
+export const downloadHistoriaClinicaPdf = (pacienteId) =>
+  api.get(`historias/paciente/${pacienteId}/pdf/`, { responseType: 'blob' }).then(res => res.data);
 
 // ---------------------- TRATAMIENTOS ----------------------
 export const getTreatments = (showInactivos) => api.get(`tratamientos/${showInactivos ? '?inactivos=true' : ''}`).then(res => res.data);

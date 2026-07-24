@@ -3,8 +3,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import viewsets, status
 from rest_framework.permissions import AllowAny
+from rest_framework.pagination import PageNumberPagination
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.utils import timezone
 from .models import *
 from .serializers import *
 from .throttles import RegisterAnonThrottle
@@ -13,7 +15,11 @@ from .throttles import RegisterAnonThrottle
 class SoftDeleteViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
-        if self.request.query_params.get('inactivos') != 'true':
+        if self.request.query_params.get('inactivos') == 'true':
+            qs = qs.filter(activo=False)
+        elif self.request.query_params.get('todos') == 'true':
+            pass
+        else:
             qs = qs.filter(activo=True)
         return qs
 
@@ -55,6 +61,8 @@ class CitaViewSet(viewsets.ModelViewSet):
     serializer_class = CitaSerializer
 
     def get_queryset(self):
+        today = timezone.localdate()
+        Cita.objects.filter(fecha_hora__lt=today, estado='PEND').update(estado='RETR')
         qs = super().get_queryset()
         fecha = self.request.query_params.get('fecha')
         if fecha:
@@ -68,9 +76,131 @@ class CitaViewSet(viewsets.ModelViewSet):
         )
 
 
+class HistoriasPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 class HistoriaClinicaViewSet(viewsets.ModelViewSet):
     queryset = HistoriaClinica.objects.all().order_by('-created_at')
     serializer_class = HistoriaClinicaSerializer
+    pagination_class = HistoriasPagination
+
+
+@api_view(['GET'])
+def historia_clinica_pdf(request, paciente_id):
+    from io import BytesIO
+    from django.http import HttpResponse
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+
+    try:
+        paciente = Paciente.objects.get(id=paciente_id)
+    except Paciente.DoesNotExist:
+        return Response({'error': 'Paciente no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+    historia = getattr(paciente, 'historia_clinica', None)
+    citas = Cita.objects.filter(paciente=paciente).select_related('colaborador', 'servicio').order_by('-fecha_hora')
+
+    buf = BytesIO()
+    doc = SimpleDocTemplate(buf, pagesize=letter, topMargin=0.5*inch, bottomMargin=0.5*inch)
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle('Title2', parent=styles['Title'], fontSize=18, spaceAfter=6))
+    styles.add(ParagraphStyle('Normal2', parent=styles['Normal'], fontSize=10, spaceAfter=4))
+    styles.add(ParagraphStyle('SectionTitle', parent=styles['Normal'], fontSize=12, spaceAfter=6, spaceBefore=12, fontName='Helvetica-Bold'))
+
+    elements = []
+
+    elements.append(Paragraph('Belleza Plena SPA', styles['Title2']))
+    elements.append(Paragraph('Historia Clínica', styles['Normal2']))
+    elements.append(Spacer(1, 12))
+    elements.append(HRFlowable(width='100%', thickness=1, color=colors.HexColor('#059669')))
+    elements.append(Spacer(1, 12))
+
+    elements.append(Paragraph('<b>Datos del Paciente</b>', styles['SectionTitle']))
+    paciente_data = [
+        ['Nombre', f"{paciente.nombres} {paciente.apellidos}"],
+        ['Documento', f"{paciente.get_tipo_documento_display()} {paciente.numero_documento or '—'}"],
+        ['Celular', paciente.celular or '—'],
+        ['Email', paciente.email or '—'],
+        ['Fecha de Nacimiento', paciente.fecha_nacimiento.strftime('%d/%m/%Y') if paciente.fecha_nacimiento else '—'],
+        ['Dirección', paciente.direccion or '—'],
+    ]
+    t = Table(paciente_data, colWidths=[2*inch, 3.5*inch])
+    t.setStyle(TableStyle([
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 0), (-1, -1), [colors.white, colors.HexColor('#f0fdf4')]),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 12))
+
+    if paciente.condiciones_medicas:
+        elements.append(Paragraph('<b>Condiciones Médicas:</b>', styles['SectionTitle']))
+        elements.append(Paragraph(paciente.condiciones_medicas, styles['Normal2']))
+        elements.append(Spacer(1, 6))
+    if paciente.alergias:
+        elements.append(Paragraph('<b>Alergias:</b>', styles['SectionTitle']))
+        elements.append(Paragraph(paciente.alergias, styles['Normal2']))
+        elements.append(Spacer(1, 6))
+    if historia:
+        if historia.observaciones:
+            elements.append(Paragraph('<b>Observaciones:</b>', styles['SectionTitle']))
+            elements.append(Paragraph(historia.observaciones, styles['Normal2']))
+            elements.append(Spacer(1, 6))
+        if historia.recomendaciones:
+            elements.append(Paragraph('<b>Recomendaciones:</b>', styles['SectionTitle']))
+            elements.append(Paragraph(historia.recomendaciones, styles['Normal2']))
+            elements.append(Spacer(1, 12))
+
+    elements.append(HRFlowable(width='100%', thickness=0.5, color=colors.grey))
+    elements.append(Spacer(1, 12))
+    elements.append(Paragraph(f'<b>Historial de Citas ({citas.count()})</b>', styles['SectionTitle']))
+
+    if citas.exists():
+        cita_data = [['Fecha', 'Hora', 'Servicio', 'Colaborador', 'Estado']]
+        for cita in citas:
+            cita_data.append([
+                cita.fecha_hora.strftime('%d/%m/%Y'),
+                str(cita.hora),
+                cita.servicio.nombre if cita.servicio else '—',
+                f"{cita.colaborador.nombres} {cita.colaborador.apellidos}" if cita.colaborador else '—',
+                dict(Cita.ESTADOS_TYPES).get(cita.estado, cita.estado),
+            ])
+        t = Table(cita_data, colWidths=[1*inch, 0.7*inch, 1.3*inch, 1.5*inch, 1*inch])
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#059669')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0fdf4')]),
+            ('ALIGN', (1, 1), (1, -1), 'CENTER'),
+        ]))
+        elements.append(t)
+    else:
+        elements.append(Paragraph('No tiene citas registradas.', styles['Normal2']))
+
+    elements.append(Spacer(1, 30))
+    elements.append(HRFlowable(width='100%', thickness=0.5, color=colors.grey))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph(
+        f'Generado el {timezone.now().strftime("%d/%m/%Y %H:%M")} por Belleza Plena SPA',
+        ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.grey, alignment=1)
+    ))
+
+    doc.build(elements)
+    buf.seek(0)
+
+    response = HttpResponse(buf, content_type='application/pdf')
+    safe_name = f"{paciente.nombres}_{paciente.apellidos}".replace(' ', '_')
+    response['Content-Disposition'] = f'attachment; filename="HistoriaClinica_{safe_name}.pdf"'
+    return response
 
 
 class HistoriasPorPaciente(APIView):
@@ -82,14 +212,16 @@ class HistoriasPorPaciente(APIView):
             citas = paciente.cita_set.select_related('colaborador', 'servicio').order_by('-fecha_hora')
             citas_data = []
             for cita in citas:
-                if hasattr(cita, 'historiaclinica'):
-                    historia = cita.historiaclinica
+                historia = getattr(cita.paciente, 'historia_clinica', None)
+                if historia:
                     citas_data.append({
                         'id': cita.id,
+                        'cita_id': cita.id,
                         'fecha_hora': cita.fecha_hora,
+                        'hora': str(cita.hora),
                         'colaborador_nombre': cita.colaborador.nombres,
                         'servicio_nombre': cita.servicio.nombre,
-                        'tratamiento': historia.tratamiento,
+                        'estado': cita.estado,
                         'observaciones': historia.observaciones,
                         'recomendaciones': historia.recomendaciones,
                     })

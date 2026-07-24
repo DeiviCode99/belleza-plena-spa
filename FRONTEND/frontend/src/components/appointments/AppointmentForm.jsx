@@ -34,6 +34,7 @@ export default function AppointmentForm({ appointment, onSave, onCancel }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const isReadOnly = appointment?.estado === 'REAL' || appointment?.estado === 'CANC';
+  const isRETR = appointment?.estado === 'RETR';
 
   useEffect(() => {
     loadData();
@@ -190,6 +191,9 @@ export default function AppointmentForm({ appointment, onSave, onCancel }) {
         </h2>
         {isReadOnly && (
           <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full font-medium">Solo lectura</span>
+        )}
+        {isRETR && (
+          <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full font-medium">Atrasada — editable</span>
         )}
       </div>
 

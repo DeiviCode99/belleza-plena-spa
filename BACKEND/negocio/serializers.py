@@ -165,10 +165,12 @@ class CitaSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         fecha_hora = attrs.get('fecha_hora')
+        instance = getattr(self, 'instance', None)
         if fecha_hora and fecha_hora < date.today():
-            raise serializers.ValidationError(
-                {'fecha_hora': 'No se puede crear una cita en una fecha pasada'}
-            )
+            if not instance or instance.estado != 'RETR':
+                raise serializers.ValidationError(
+                    {'fecha_hora': 'No se puede crear una cita en una fecha pasada'}
+                )
         return attrs
 
     def create(self, validated_data):
@@ -198,6 +200,12 @@ class CitaSerializer(serializers.ModelSerializer):
                 {'estado': 'No se puede modificar una cita que ya fue realizada o cancelada'}
             )
 
+        if 'estado' in validated_data and validated_data['estado'] in ('REAL', 'CANC'):
+            if instance.estado == 'RETR':
+                instance.estado = validated_data.pop('estado')
+                instance.save(update_fields=['estado'])
+                return instance
+
         if 'paciente_id' in validated_data:
             instance.paciente = validated_data.pop('paciente_id')
         if 'colaborador_id' in validated_data:
@@ -225,8 +233,6 @@ class CitaSerializer(serializers.ModelSerializer):
 
 
 class HistoriaClinicaSerializer(serializers.ModelSerializer):
-    cita = CitaSerializer(read_only=True)
-
     class Meta:
         model = HistoriaClinica
         fields = '__all__'
