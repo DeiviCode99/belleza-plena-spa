@@ -14,7 +14,7 @@ export const createAppointment = (data) => api.post('citas/', data);
 export const updateAppointment = (id, data) => api.put(`citas/${id}/`, data);
 
 // ---------------------- HISTORIAS CLÍNICAS ----------------------
-export const getMedicalRecords = () => api.get('historias-clinicas/').then(res => res.data);
+export const getMedicalRecords = (page = 1, search = '') => api.get('historias-clinicas/', { params: { page, search, page_size: 20 } }).then(res => res.data);
 export const updateMedicalRecord = (id, data) => api.put(`historias/${id}/`, data).then(res => res.data);
 export const downloadHistoriaClinicaPdf = (pacienteId) =>
   api.get(`historias/paciente/${pacienteId}/pdf/`, { responseType: 'blob' }).then(res => res.data);

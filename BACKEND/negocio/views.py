@@ -6,6 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.pagination import PageNumberPagination
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.db import models
 from django.utils import timezone
 from .models import *
 from .serializers import *
@@ -124,9 +125,8 @@ def historia_clinica_pdf(request, paciente_id):
     elements.append(Paragraph('<b>Datos del Paciente</b>', styles['SectionTitle']))
     paciente_data = [
         ['Nombre', f"{paciente.nombres} {paciente.apellidos}"],
-        ['Documento', f"{paciente.get_tipo_documento_display()} {paciente.numero_documento or '—'}"],
+        ['Documento', f"{paciente.get_tipo_documento_display() or '—'} {paciente.numero_documento or '—'}"],
         ['Celular', paciente.celular or '—'],
-        ['Email', paciente.email or '—'],
         ['Fecha de Nacimiento', paciente.fecha_nacimiento.strftime('%d/%m/%Y') if paciente.fecha_nacimiento else '—'],
         ['Dirección', paciente.direccion or '—'],
     ]
@@ -205,10 +205,23 @@ def historia_clinica_pdf(request, paciente_id):
 
 class HistoriasPorPaciente(APIView):
     def get(self, request):
-        pacientes_data = []
-        pacientes = Paciente.objects.all()
+        page = int(request.query_params.get('page', 1))
+        page_size = int(request.query_params.get('page_size', 20))
+        search = request.query_params.get('search', '').strip()
 
-        for paciente in pacientes:
+        pacientes_qs = Paciente.objects.all().order_by('nombres')
+        if search:
+            pacientes_qs = pacientes_qs.filter(
+                models.Q(nombres__icontains=search) | models.Q(apellidos__icontains=search) | models.Q(numero_documento__icontains=search)
+            )
+
+        total = pacientes_qs.count()
+        start = (page - 1) * page_size
+        end = start + page_size
+        pacientes_page = pacientes_qs[start:end]
+
+        pacientes_data = []
+        for paciente in pacientes_page:
             citas = paciente.cita_set.select_related('colaborador', 'servicio').order_by('-fecha_hora')
             citas_data = []
             for cita in citas:
@@ -226,14 +239,20 @@ class HistoriasPorPaciente(APIView):
                         'recomendaciones': historia.recomendaciones,
                     })
 
-            if citas_data:
-                pacientes_data.append({
-                    'paciente_id': paciente.id,
-                    'paciente_nombre': f"{paciente.nombres} {paciente.apellidos}",
-                    'citas': citas_data
-                })
+            pacientes_data.append({
+                'paciente_id': paciente.id,
+                'paciente_nombre': f"{paciente.nombres} {paciente.apellidos}",
+                'paciente_documento': paciente.numero_documento or '',
+                'citas': citas_data
+            })
 
-        return Response(pacientes_data)
+        return Response({
+            'results': pacientes_data,
+            'count': total,
+            'page': page,
+            'page_size': page_size,
+            'total_pages': max(1, -(-total // page_size)),
+        })
 
 
 class TipoDocumentoChoices(APIView):
